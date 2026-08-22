@@ -1,0 +1,572 @@
+// ---------------------------------------------------------------------------
+// Distribution of Tasks — data model
+//
+// Design notes
+//  * SQLite is used so the project runs with zero infrastructure. Every model
+//    below is portable to PostgreSQL: change `provider` to "postgresql" and the
+//    enum-like string fields keep working unchanged (they are validated in the
+//    application layer by `src/lib/domain/enums.ts`, not by the database, so no
+//    dialect-specific enum types are required).
+//  * Anything that influences *who gets a task* is written down and kept, not
+//    recomputed. Match runs, candidate scores and eligibility verdicts are
+//    stored so an assignment can always be explained after the fact.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================================================
+// Identity & access
+// ===========================================================================
+
+/// A person who can sign in. Sign-up is possible with e-mail + password,
+/// Google ("Gmail"), or a phone number + one-time code. A single human always
+/// has exactly one User row; extra sign-in methods attach as AuthIdentity rows.
+model User {
+  id            String  @id @default(cuid())
+  email         String? @unique
+  phone         String? @unique // E.164, e.g. +4520123456
+  fullName      String
+  avatarColor   String  @default("#2563eb")
+
+  // Local password credentials (scrypt). Null for OAuth/phone-only accounts.
+  passwordHash  String?
+
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+
+  /// PLATFORM_ADMIN | HEAD_OF_DISTRIBUTION | COWORKER  (see domain/enums.ts)
+  role          String   @default("COWORKER")
+  status        String   @default("ACTIVE") // ACTIVE | SUSPENDED | DEACTIVATED
+
+  locale        String   @default("en")
+  timezone      String   @default("Europe/Copenhagen")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastLoginAt   DateTime?
+
+  identities    AuthIdentity[]
+  sessions      Session[]
+  consents      Consent[]
+  notifications Notification[]
+  coworker      Coworker?
+  createdTasks  Task[]         @relation("TaskCreatedBy")
+  ownedFolders  TaskFolder[]   @relation("FolderOwner")
+  assignmentsMade Assignment[] @relation("AssignmentAssignedBy")
+  auditEvents   AuditEvent[]
+  verifications VerificationToken[]
+  matchRuns     MatchRun[]
+
+  @@index([role])
+  @@index([status])
+}
+
+/// One sign-in method attached to a user: password / google / phone.
+model AuthIdentity {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// EMAIL_PASSWORD | GOOGLE | PHONE
+  provider       String
+  /// Stable id at the provider: the e-mail, the Google `sub`, or the phone.
+  providerUserId String
+  /// Non-authoritative display value captured at link time (e.g. Google email).
+  label          String?
+
+  createdAt      DateTime @default(now())
+  lastUsedAt     DateTime?
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+/// Server-side session. The cookie holds a random secret; only its SHA-256
+/// hash is stored, so a database leak cannot be replayed as a login.
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  userAgent  String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  revokedAt  DateTime?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Short-lived one-time codes and links: phone OTP, e-mail verification,
+/// password reset. Only the hash of the code is stored.
+model VerificationToken {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// PHONE_OTP | EMAIL_VERIFY | PASSWORD_RESET
+  purpose     String
+  /// The e-mail or phone the code was sent to.
+  destination String
+  codeHash    String
+  attempts    Int      @default(0)
+  maxAttempts Int      @default(5)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  consumedAt  DateTime?
+
+  @@index([destination, purpose])
+  @@index([expiresAt])
+}
+
+/// An immutable record of every consent decision. Consent is never overwritten:
+/// a withdrawal is a new row with granted=false, so the full history is
+/// auditable. `Consent.current` resolves the latest state per (user, type).
+model Consent {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// TERMS_OF_SERVICE | PRIVACY_POLICY | MARKETING_EMAIL | MARKETING_SMS |
+  /// OPERATIONAL_EMAIL | OPERATIONAL_SMS
+  type        String
+  granted     Boolean
+  /// Version of the document that was shown, e.g. "2026-01-15".
+  documentVersion String?
+  /// Where the decision was made: SIGNUP | SETTINGS | ADMIN | API
+  source      String   @default("SIGNUP")
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, type, createdAt])
+}
+
+// ===========================================================================
+// Capability catalogue
+// ===========================================================================
+
+/// A capability that a task can require and a coworker can hold.
+/// `kind` separates things that are *graded* (a level 0-5) from things that are
+/// *held or not held* (a licence), because they are checked differently.
+model Skill {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  category    String  @default("General")
+  description String?
+  /// GRADED | CERTIFICATION
+  kind        String  @default("GRADED")
+  /// Certifications may expire; graded skills do not.
+  expires     Boolean @default(false)
+  archivedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  coworkerSkills   CoworkerSkill[]
+  taskRequirements TaskRequirement[]
+  positionRequirements PositionRequirement[]
+
+  @@index([category])
+}
+
+/// A job position (e.g. "Senior Electrical Technician"). Positions describe the
+/// capability baseline expected of anyone holding them and can be created from
+/// the UI at /positions/new.
+model Position {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  title       String
+  department  String  @default("General")
+  description String?
+  /// 1 = junior … 5 = principal. Used as a soft ranking signal only.
+  seniority   Int     @default(3)
+  archivedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requirements PositionRequirement[]
+  coworkers    Coworker[]
+  folders      TaskFolder[]
+  tasks        Task[]
+
+  @@index([department])
+}
+
+model PositionRequirement {
+  id         String   @id @default(cuid())
+  positionId String
+  position   Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  skillId    String
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  /// Minimum level 0-5 for GRADED skills; ignored for CERTIFICATION skills.
+  minLevel   Int      @default(3)
+  /// MANDATORY requirements are a hard gate when the position is used as a
+  /// template; PREFERRED ones only inform the suggested profile.
+  necessity  String   @default("MANDATORY")
+
+  @@unique([positionId, skillId])
+}
+
+// ===========================================================================
+// Coworkers
+// ===========================================================================
+
+/// The work-facing profile of a user: what they can do, how much they can take
+/// on, and when they are available.
+model Coworker {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  positionId    String?
+  position      Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
+
+  employeeNumber String? @unique
+  department     String  @default("General")
+  /// ACTIVE | ON_LEAVE | UNAVAILABLE | OFFBOARDED
+  availability   String  @default("ACTIVE")
+  availableFrom  DateTime?
+  availableUntil DateTime?
+
+  /// Contracted hours the coworker can be scheduled for in a week.
+  weeklyCapacityHours Float @default(37)
+  /// Comma-separated ISO-639-1 codes, e.g. "da,en".
+  languages      String  @default("en")
+  timezone       String  @default("Europe/Copenhagen")
+
+  /// Free-text specification kept alongside the structured capabilities.
+  notes          String?
+
+  /// Fairness bookkeeping: used as a deterministic tie-breaker so that two
+  /// equally qualified coworkers take turns instead of one always winning.
+  lastAssignedAt DateTime?
+  assignmentCount Int     @default(0)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  skills         CoworkerSkill[]
+  assignments    Assignment[]
+  candidacies    MatchCandidate[]
+  exclusions     TaskExclusion[]
+
+  @@index([availability])
+  @@index([department])
+  @@index([positionId])
+}
+
+/// One capability held by one coworker.
+model CoworkerSkill {
+  id           String   @id @default(cuid())
+  coworkerId   String
+  coworker     Coworker @relation(fields: [coworkerId], references: [id], onDelete: Cascade)
+  skillId      String
+  skill        Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  /// 0 = none … 5 = expert. For CERTIFICATION skills, 5 = held.
+  level        Int      @default(3)
+  yearsExperience Float @default(0)
+
+  /// A self-declared skill is a weaker signal than one signed off by a lead.
+  verified     Boolean  @default(false)
+  verifiedById String?
+  verifiedAt   DateTime?
+
+  /// For certifications that expire. A lapsed certification fails the gate.
+  expiresAt    DateTime?
+  evidence     String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([coworkerId, skillId])
+  @@index([skillId])
+}
+
+// ===========================================================================
+// Distribution folders & tasks
+// ===========================================================================
+
+/// The folder the head of distribution drops work into. The folder carries the
+/// routing policy, so a whole class of work is distributed the same way every
+/// time.
+model TaskFolder {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  department  String  @default("General")
+  colour      String  @default("#2563eb")
+
+  ownerId     String
+  owner       User    @relation("FolderOwner", fields: [ownerId], references: [id])
+
+  /// Every task in the folder inherits these unless it overrides them.
+  defaultPositionId String?
+  defaultPosition   Position? @relation(fields: [defaultPositionId], references: [id], onDelete: SetNull)
+
+  /// AUTO_ASSIGN | PROPOSE_ONLY  — whether matching may assign without a human.
+  routingMode String @default("AUTO_ASSIGN")
+  /// BEST_MATCH | BALANCED_LOAD | ROUND_ROBIN — how ranked candidates are picked.
+  tieBreak    String @default("BALANCED_LOAD")
+  /// When the top two candidates are within this score distance the run is
+  /// treated as a tie. Under STRICT ambiguity handling that sends the task to a
+  /// human instead of guessing.
+  tieEpsilon  Float  @default(0.02)
+  /// STRICT | AUTO — STRICT never auto-assigns an ambiguous tie.
+  ambiguityPolicy String @default("STRICT")
+  /// A candidate below this score is never auto-assigned even if it is the best.
+  minimumScore Float @default(0.5)
+
+  archivedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks       Task[]
+
+  @@index([department])
+}
+
+model Task {
+  id          String  @id @default(cuid())
+  reference   String  @unique // human-facing, e.g. TSK-1042
+  title       String
+  description String?
+
+  folderId    String
+  folder      TaskFolder @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User    @relation("TaskCreatedBy", fields: [createdById], references: [id])
+
+  /// DRAFT | QUEUED | MATCHED | NEEDS_REVIEW | ASSIGNED | IN_PROGRESS |
+  /// COMPLETED | CANCELLED | BLOCKED_NO_MATCH
+  status      String  @default("DRAFT")
+  /// LOW | NORMAL | HIGH | CRITICAL
+  priority    String  @default("NORMAL")
+
+  estimatedHours Float  @default(4)
+  dueAt          DateTime?
+  startAfter     DateTime?
+
+  /// Optional hard gate: only holders of this position may be considered.
+  requiredPositionId String?
+  requiredPosition   Position? @relation(fields: [requiredPositionId], references: [id], onDelete: SetNull)
+
+  /// Comma-separated ISO-639-1 codes the assignee must speak. Empty = any.
+  requiredLanguages String @default("")
+  /// Restrict to a department. Empty = any.
+  requiredDepartment String @default("")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  queuedAt    DateTime?
+  completedAt DateTime?
+
+  requirements TaskRequirement[]
+  matchRuns    MatchRun[]
+  assignments  Assignment[]
+  exclusions   TaskExclusion[]
+
+  @@index([status])
+  @@index([folderId, status])
+  @@index([priority])
+}
+
+/// One capability a task needs. MANDATORY requirements form the hard gate that
+/// keeps unqualified coworkers out; PREFERRED ones only move the ranking.
+model TaskRequirement {
+  id        String @id @default(cuid())
+  taskId    String
+  task      Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  skillId   String
+  skill     Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  minLevel  Int    @default(3)
+  /// MANDATORY | PREFERRED
+  necessity String @default("MANDATORY")
+  /// Relative importance inside the ranking, 1-5.
+  weight    Int    @default(3)
+
+  @@unique([taskId, skillId])
+}
+
+/// An explicit "never route this task to this person" rule (conflict of
+/// interest, customer request, holiday cover). Always wins over the score.
+model TaskExclusion {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  coworkerId String
+  coworker   Coworker @relation(fields: [coworkerId], references: [id], onDelete: Cascade)
+  reason     String
+  createdAt  DateTime @default(now())
+
+  @@unique([taskId, coworkerId])
+}
+
+// ===========================================================================
+// Matching — every decision is recorded
+// ===========================================================================
+
+/// One execution of the matching engine for one task. Kept forever: this is the
+/// evidence that a task went to a qualified person and why.
+model MatchRun {
+  id        String @id @default(cuid())
+  taskId    String
+  task      Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  triggeredById String?
+  triggeredBy   User?  @relation(fields: [triggeredById], references: [id], onDelete: SetNull)
+  /// MANUAL | FOLDER_INTAKE | REQUEUE
+  trigger   String @default("MANUAL")
+
+  /// ASSIGNED | PROPOSED | AMBIGUOUS_TIE | NO_ELIGIBLE_CANDIDATE | BELOW_MINIMUM
+  outcome   String
+  /// Human-readable summary of the outcome.
+  summary   String
+
+  /// Snapshot of the policy the run used, so a later policy change cannot
+  /// silently rewrite the story of an old assignment.
+  policyJson String
+  /// Version of the scoring algorithm, e.g. "1.0.0".
+  engineVersion String @default("1.0.0")
+
+  candidateCount Int   @default(0)
+  eligibleCount  Int   @default(0)
+  durationMs     Int   @default(0)
+
+  createdAt DateTime @default(now())
+
+  candidates MatchCandidate[]
+  assignment Assignment?
+
+  @@index([taskId, createdAt])
+}
+
+/// The verdict for one coworker in one match run — including the ones that were
+/// rejected, and exactly which requirement they failed.
+model MatchCandidate {
+  id         String   @id @default(cuid())
+  matchRunId String
+  matchRun   MatchRun @relation(fields: [matchRunId], references: [id], onDelete: Cascade)
+  coworkerId String
+  coworker   Coworker @relation(fields: [coworkerId], references: [id], onDelete: Cascade)
+
+  eligible   Boolean
+  /// Reasons the candidate was rejected (JSON array of strings). Empty when eligible.
+  blockersJson String @default("[]")
+
+  /// Final 0-1 score. 0 for ineligible candidates.
+  score      Float    @default(0)
+  /// Per-factor breakdown (JSON): skillFit, verification, capacity, fairness, …
+  breakdownJson String @default("{}")
+  /// 1 = best. Ineligible candidates are not ranked (rank = null).
+  rank       Int?
+
+  @@unique([matchRunId, coworkerId])
+  @@index([matchRunId, rank])
+}
+
+/// The result of distribution: this task, this person.
+model Assignment {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  coworkerId String
+  coworker   Coworker @relation(fields: [coworkerId], references: [id], onDelete: Cascade)
+
+  matchRunId String?  @unique
+  matchRun   MatchRun? @relation(fields: [matchRunId], references: [id], onDelete: SetNull)
+
+  /// AUTOMATIC | MANUAL_OVERRIDE | REASSIGNMENT
+  method     String   @default("AUTOMATIC")
+  assignedById String?
+  assignedBy   User?  @relation("AssignmentAssignedBy", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  /// PROPOSED | ACTIVE | COMPLETED | REVOKED | DECLINED
+  status     String   @default("ACTIVE")
+  scoreAtAssignment Float @default(0)
+  rationale  String   @default("")
+  /// Required when a human overrides the engine's recommendation.
+  overrideReason String?
+
+  createdAt   DateTime @default(now())
+  acceptedAt  DateTime?
+  completedAt DateTime?
+  revokedAt   DateTime?
+
+  @@index([coworkerId, status])
+  @@index([taskId])
+}
+
+// ===========================================================================
+// Notifications & audit
+// ===========================================================================
+
+/// Everything worth telling a user about. The in-app row is always written —
+/// that is the bell in the top-right corner. `emailStatus` / `smsStatus` track
+/// the external copies, which are only attempted when consent allows.
+model Notification {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// TASK_ASSIGNED | TASK_REASSIGNED | TASK_NEEDS_REVIEW | TASK_NO_MATCH |
+  /// SKILL_VERIFIED | POSITION_CREATED | WELCOME | PRODUCT_UPDATE | …
+  type     String
+  title    String
+  body     String
+  /// Deep link into the app, e.g. /tasks/abc123
+  link     String?
+  /// INFO | SUCCESS | WARNING | CRITICAL
+  severity String @default("INFO")
+  /// OPERATIONAL notifications are about your own work and are always shown in
+  /// the bell. MARKETING ones are product news and require marketing consent
+  /// even for the in-app copy.
+  category String @default("OPERATIONAL")
+
+  readAt   DateTime?
+  createdAt DateTime @default(now())
+
+  /// NOT_APPLICABLE | SKIPPED_NO_CONSENT | QUEUED | SENT | FAILED
+  emailStatus String  @default("NOT_APPLICABLE")
+  smsStatus   String  @default("NOT_APPLICABLE")
+  deliveryNote String?
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+/// Append-only trail of consequential actions.
+model AuditEvent {
+  id        String @id @default(cuid())
+  actorId   String?
+  actor     User?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  /// e.g. task.created, task.assigned, position.created, consent.updated
+  action    String
+  entity    String
+  entityId  String
+  /// JSON detail payload.
+  dataJson  String @default("{}")
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+/// Global counter used to mint human-readable task references (TSK-1042).
+model Counter {
+  name  String @id
+  value Int    @default(0)
+}
