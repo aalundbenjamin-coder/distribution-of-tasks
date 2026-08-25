@@ -17,10 +17,18 @@ exactly why a particular task went to a particular person.
 
 ## Running it
 
+You need a PostgreSQL database. Any one will do — here is a throwaway:
+
+```bash
+docker run --name dot-db -e POSTGRES_PASSWORD=dot -p 5432:5432 -d postgres:16
+```
+
+Then:
+
 ```bash
 npm install
-cp .env.example .env      # the defaults work as-is
-npm run setup             # generate the client, create the database, seed it
+cp .env.example .env      # the default DATABASE_URL matches the container above
+npm run setup             # generate the client, run migrations, seed
 npm run dev               # http://localhost:3000
 ```
 
@@ -42,15 +50,17 @@ a task of your own.
 Other scripts:
 
 ```bash
-npm test          # 87 tests: the gate, the ranking, validation, and end-to-end
-npm run build     # production build
-npm run typecheck # tsc --noEmit
-npm run db:reset  # wipe and reseed
+npm test           # 87 tests: the gate, the ranking, validation, and end-to-end
+npm run build      # production build
+npm run typecheck  # tsc --noEmit
+npm run db:seed    # wipe the demo data and reseed
+npm run db:migrate # create a migration after changing the schema
+npm run db:deploy  # apply pending migrations (what production runs)
 ```
 
-Nothing external is required to run the whole product. Google sign-in, e-mail
-and SMS all fall back to clearly-labelled local stand-ins when no credentials
-are configured — see [Configuration](#configuration).
+Postgres is the only thing you have to provide. Google sign-in, e-mail and SMS
+all fall back to clearly-labelled local stand-ins when no credentials are
+configured — see [Configuration](#configuration).
 
 ---
 
@@ -210,7 +220,7 @@ stand-ins that say what they are.
 
 | Variable | Without it |
 | --- | --- |
-| `DATABASE_URL` | **Required.** SQLite by default; no server to run |
+| `DATABASE_URL` | **Required.** A PostgreSQL connection string; prefer the pooled one when deployed |
 | `APP_ORIGIN` | Falls back to the request origin |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | The Google button opens a local stand-in page, clearly labelled as not being Google, and refused entirely when `NODE_ENV=production` |
 | `RESEND_API_KEY` / `MAIL_FROM` | E-mails are logged to the server console; the interface marks them "simulated" |
@@ -218,12 +228,50 @@ stand-ins that say what they are.
 
 Google's redirect URI is `<APP_ORIGIN>/api/auth/google/callback`.
 
-### Moving to PostgreSQL
+---
 
-Change `provider` in `prisma/schema.prisma` from `"sqlite"` to `"postgresql"`,
-point `DATABASE_URL` at your server, and run `npm run db:push`. Nothing else
-changes — the schema uses no dialect-specific types, and the string-backed enums
-are validated in `src/lib/domain/enums.ts` rather than by the database.
+## Deploying
+
+The app is a normal Next.js project and needs exactly two things: a PostgreSQL
+database, and `DATABASE_URL` pointing at it.
+
+### On Vercel
+
+1. Import the repository. The framework and build command are detected; the
+   build runs `prisma generate && next build`, so the client is always
+   generated fresh (the generated client is not committed).
+2. Add a Postgres database under **Storage** — Neon and Prisma Postgres are both
+   one click, and both inject `DATABASE_URL` into the project automatically. Use
+   the **pooled** connection string.
+3. Apply the schema once, from your machine, against the same database:
+
+   ```bash
+   DATABASE_URL="<unpooled connection string>" npx prisma migrate deploy
+   ```
+
+   Use the *unpooled* URL for this one step: a transaction pooler cannot run
+   some of the statements a migration issues. Everything the running app does
+   works fine through the pooled URL.
+4. Optionally seed the demo organisation the same way:
+
+   ```bash
+   DATABASE_URL="<unpooled connection string>" npx tsx prisma/seed.ts
+   ```
+
+   Skip this for a real deployment — it deletes all existing data and replaces
+   it with the demo set. Create the first account through the sign-up form
+   instead, then promote it to `HEAD_OF_DISTRIBUTION` in the database.
+5. Set `APP_ORIGIN` to the deployed URL so links inside e-mails and SMS point
+   somewhere real.
+
+Migrations are deliberately **not** run during the build. A build that mutates
+the database is a build you cannot safely re-run, and Vercel re-runs builds for
+every preview branch.
+
+### Anywhere else
+
+`npm run build && npm run start` behind any Node 20+ runtime. The only
+requirement is that `DATABASE_URL` is reachable.
 
 ---
 

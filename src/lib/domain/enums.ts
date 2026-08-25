@@ -1,9 +1,9 @@
 /**
  * Every string-backed enum in the data model, declared once.
  *
- * The database stores plain strings (so the schema stays portable between
- * SQLite and PostgreSQL) and this module is the single place that says which
- * strings are legal. Anything that writes one of these columns validates
+ * The database stores plain strings rather than PostgreSQL enum types, so
+ * adding a task status is a code change instead of an ALTER TYPE migration.
+ * This module is the single place that says which strings are legal. Anything that writes one of these columns validates
  * through here first.
  */
 

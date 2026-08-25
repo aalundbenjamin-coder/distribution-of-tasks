@@ -2,11 +2,13 @@
 // Distribution of Tasks — data model
 //
 // Design notes
-//  * SQLite is used so the project runs with zero infrastructure. Every model
-//    below is portable to PostgreSQL: change `provider` to "postgresql" and the
-//    enum-like string fields keep working unchanged (they are validated in the
-//    application layer by `src/lib/domain/enums.ts`, not by the database, so no
-//    dialect-specific enum types are required).
+//  * PostgreSQL. The app is deployed to serverless functions, where the
+//    filesystem is read-only and per-instance, so an embedded file database is
+//    not an option — every sign-up, distribution and notification is a write.
+//  * The models use no dialect-specific types. The enum-like string fields are
+//    validated in the application layer by `src/lib/domain/enums.ts` rather
+//    than by database enum types, which keeps migrations cheap: adding a task
+//    status is a code change, not an ALTER TYPE.
 //  * Anything that influences *who gets a task* is written down and kept, not
 //    recomputed. Match runs, candidate scores and eligibility verdicts are
 //    stored so an assignment can always be explained after the fact.
@@ -15,10 +17,23 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  // `native` covers local development; the RHEL target is what Vercel's
+  // serverless runtime actually loads. Without it the deployed function throws
+  // at the first query rather than at build time.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  // One variable, deliberately. Prisma refuses to start when a `directUrl`
+  // env var is declared but unset, and Vercel's Postgres integrations inject
+  // only DATABASE_URL — so declaring a second one here would turn a forgotten
+  // variable into a failed build. Migrations that need an unpooled connection
+  // take it on the command line instead:
+  //   DATABASE_URL="<unpooled url>" npx prisma migrate deploy
+  //
+  // Prefer a pooled URL here: serverless invocations are many and short-lived,
+  // and a direct connection per instance exhausts the server's slots.
   url      = env("DATABASE_URL")
 }
 
