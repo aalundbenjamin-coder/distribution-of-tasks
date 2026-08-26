@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { createSkillAction, type ActionState } from '@/app/actions/catalogue';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 
 const INITIAL: ActionState = { ok: false };
 
@@ -12,7 +13,7 @@ const INITIAL: ActionState = { ok: false };
  * the two are checked differently: a graded capability is compared against a
  * minimum level, a certification is either held and current or it is not.
  */
-export default function SkillForm() {
+export default function SkillForm({ t }: { t: Dictionary }) {
   const [state, action, pending] = useActionState(createSkillAction, INITIAL);
   const [kind, setKind] = useState<'GRADED' | 'CERTIFICATION'>('GRADED');
 
@@ -22,24 +23,24 @@ export default function SkillForm() {
       {state.ok && state.message && <div className="notice notice-ok">{state.message}</div>}
 
       <div className="field">
-        <label className="label" htmlFor="s-name">Name</label>
+        <label className="label" htmlFor="s-name">{t.skills.name}</label>
         <input
           id="s-name"
           name="name"
           className={`input ${state.field === 'name' ? 'input-error' : ''}`}
           required
-          placeholder="High-voltage switching"
+          placeholder={t.skills.namePlaceholder}
         />
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="s-category">Category</label>
-        <input id="s-category" name="category" className="input" placeholder="Electrical" />
-        <span className="hint">Used to group the list. Anything sensible works.</span>
+        <label className="label" htmlFor="s-category">{t.skills.category}</label>
+        <input id="s-category" name="category" className="input" placeholder={t.skills.categoryPlaceholder} />
+        <span className="hint">{t.skills.categoryHint}</span>
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="s-kind">Kind</label>
+        <label className="label" htmlFor="s-kind">{t.skills.kind}</label>
         <select
           id="s-kind"
           name="kind"
@@ -47,13 +48,13 @@ export default function SkillForm() {
           value={kind}
           onChange={(e) => setKind(e.target.value as 'GRADED' | 'CERTIFICATION')}
         >
-          <option value="GRADED">Graded — a level from 0 to 5</option>
-          <option value="CERTIFICATION">Certification — held or not held</option>
+          <option value="GRADED">{t.skills.kindGraded}</option>
+          <option value="CERTIFICATION">{t.skills.kindCertification}</option>
         </select>
         <span className="hint">
           {kind === 'GRADED'
-            ? 'A task asks for a minimum level; anyone below it is removed from consideration.'
-            : 'A task asks for the certification outright. A lapsed one counts as not held.'}
+            ? t.skills.kindHintGraded
+            : t.skills.kindHintCert}
         </span>
       </div>
 
@@ -61,28 +62,27 @@ export default function SkillForm() {
         <label className="checkline">
           <input type="checkbox" name="expires" defaultChecked />
           <span>
-            <span style={{ fontWeight: 580, fontSize: 13.5 }}>This certification expires</span>
+            <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.skills.expiresLabel}</span>
             <span className="hint" style={{ display: 'block', marginTop: 2 }}>
-              Anyone holding it must record a valid-until date, and it stops counting the day it
-              lapses.
+              {t.skills.expiresHint}
             </span>
           </span>
         </label>
       )}
 
       <div className="field">
-        <label className="label" htmlFor="s-desc">Description</label>
+        <label className="label" htmlFor="s-desc">{t.skills.description}</label>
         <textarea
           id="s-desc"
           name="description"
           className="textarea"
           style={{ minHeight: 68 }}
-          placeholder="What someone holding this can actually do."
+          placeholder={t.skills.descriptionPlaceholder}
         />
       </div>
 
       <button type="submit" className="btn btn-primary" disabled={pending}>
-        {pending ? <><span className="spin" /> Adding…</> : 'Add to the catalogue'}
+        {pending ? <><span className="spin" /> {t.common.saving}</> : t.skills.addToCatalogue}
       </button>
     </form>
   );

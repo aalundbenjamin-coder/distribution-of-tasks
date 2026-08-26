@@ -30,9 +30,14 @@ export async function POST(request: Request) {
     'OPERATIONAL_EMAIL',
     'OPERATIONAL_SMS',
   ];
+  // One box on the form, two consents on the record — see actions/auth.ts.
+  const acceptedDocuments =
+    formData.get('accept_documents') === 'on' ||
+    (formData.get('accept_terms') === 'on' && formData.get('accept_privacy') === 'on');
+
   const decisions: ConsentDecision[] = [
-    { type: 'TERMS_OF_SERVICE', granted: formData.get('accept_terms') === 'on' },
-    { type: 'PRIVACY_POLICY', granted: formData.get('accept_privacy') === 'on' },
+    { type: 'TERMS_OF_SERVICE', granted: acceptedDocuments },
+    { type: 'PRIVACY_POLICY', granted: acceptedDocuments },
     ...optional.map((type) => ({ type, granted: formData.get(`consent_${type}`) === 'on' })),
   ];
 
@@ -74,11 +79,7 @@ export async function POST(request: Request) {
   jar.set('g_next', next, cookieOptions);
 
   if (isGoogleConfigured()) {
-    const url = buildAuthorizationUrl({
-      requestUrl: request.url,
-      state,
-      codeChallenge: challenge,
-    });
+    const url = buildAuthorizationUrl({ request, state, codeChallenge: challenge });
     return NextResponse.redirect(url, { status: 303 });
   }
 

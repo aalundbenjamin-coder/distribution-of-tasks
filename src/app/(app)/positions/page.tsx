@@ -2,14 +2,17 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
-import { Badge, Card, LevelPips, PageHeader } from '@/components/ui';
+import { Badge, Card, PageHeader } from '@/components/ui';
+import { LevelPips } from '@/components/ui-labels';
 import { BadgeIcon, PlusIcon, ShieldIcon } from '@/components/icons';
+import { fill, getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Positions' };
 export const dynamic = 'force-dynamic';
 
 export default async function PositionsPage() {
   await requireDistributor('/positions');
+  const { t } = await getTranslations();
 
   const positions = await prisma.position.findMany({
     where: { archivedAt: null },
@@ -23,11 +26,11 @@ export default async function PositionsPage() {
   return (
     <>
       <PageHeader
-        title="Positions"
-        lede="A position is a named capability baseline. Define one and it can be used to restrict a task, to seed a new coworker's profile, and to set a folder's default."
+        title={t.positions.title}
+        lede={t.positions.lede}
         action={
           <Link href="/positions/new" className="btn btn-primary">
-            <PlusIcon size={16} /> New position
+            <PlusIcon size={16} /> {t.positions.newPosition}
           </Link>
         }
       />
@@ -36,9 +39,9 @@ export default async function PositionsPage() {
         <Card>
           <div className="empty">
             <BadgeIcon size={28} style={{ opacity: 0.4, marginBottom: 10 }} />
-            <div>No positions defined yet.</div>
+            <div>{t.positions.noneYet}</div>
             <Link href="/positions/new" className="btn btn-primary btn-sm" style={{ marginTop: 14 }}>
-              Create the first one
+              {t.positions.createFirst}
             </Link>
           </div>
         </Card>
@@ -48,10 +51,10 @@ export default async function PositionsPage() {
             <Card
               key={position.id}
               title={position.title}
-              subtitle={`${position.department} · seniority ${position.seniority} · ${position._count.coworkers} coworker${position._count.coworkers === 1 ? '' : 's'} hold it`}
+              subtitle={`${position.department} · ${t.positions.seniority} ${position.seniority} · ${fill(t.positions.holders, { n: position._count.coworkers })}`}
               action={
                 <Link href={`/coworkers?position=${position.id}`} className="btn btn-sm btn-ghost">
-                  Who holds it
+                  {t.coworkers.whoHoldsIt}
                 </Link>
               }
             >
@@ -60,10 +63,10 @@ export default async function PositionsPage() {
               )}
 
               {position.requirements.length === 0 ? (
-                <p className="small subtle">No capability baseline set for this position.</p>
+                <p className="small subtle">{t.positions.noBaseline}</p>
               ) : (
                 <div className="stack" style={{ gap: 8 }}>
-                  <div className="eyebrow">Expected capabilities</div>
+                  <div className="eyebrow">{t.positions.expectedCapabilities}</div>
                   {position.requirements.map((req) => (
                     <div
                       key={req.id}
@@ -73,12 +76,12 @@ export default async function PositionsPage() {
                       <span className="row" style={{ gap: 9 }}>
                         <span className="small" style={{ fontWeight: 540 }}>{req.skill.name}</span>
                         {req.skill.kind === 'CERTIFICATION' && (
-                          <Badge tone="info"><ShieldIcon size={11} /> Certification</Badge>
+                          <Badge tone="info"><ShieldIcon size={11} /> {t.skillKind.CERTIFICATION}</Badge>
                         )}
-                        {req.necessity === 'PREFERRED' && <Badge>Preferred</Badge>}
+                        {req.necessity === 'PREFERRED' && <Badge>{t.necessity.PREFERRED}</Badge>}
                       </span>
                       {req.skill.kind === 'CERTIFICATION' ? (
-                        <span className="tiny muted">Must hold it</span>
+                        <span className="tiny muted">{t.positions.mustHoldIt}</span>
                       ) : (
                         <LevelPips level={req.minLevel} required={req.minLevel} />
                       )}

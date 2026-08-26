@@ -19,6 +19,7 @@ import type {
   ScoreFactor,
   TaskInput,
 } from './types';
+import { EN_MESSAGES, type EngineMessages } from './messages';
 
 export const ENGINE_VERSION = '1.0.0';
 
@@ -117,6 +118,7 @@ export function scoreCandidate(
   remainingHoursAfterTask: number,
   stats: PoolStats,
   now: Date,
+  m: EngineMessages = EN_MESSAGES,
 ): ScoreResult {
   const factors: ScoreFactor[] = [];
   const certById = new Map(task.requirements.map((r) => [r.skillId, r.skillKind === 'CERTIFICATION']));
@@ -138,23 +140,23 @@ export function scoreCandidate(
     const surplusCount = findings.filter((f) => f.met && f.held !== null && f.held > f.required).length;
     factors.push({
       key: 'skillFit',
-      label: FACTOR_LABELS.skillFit,
+      label: m.factorLabels.skillFit,
       value,
       weight: FACTOR_WEIGHTS.skillFit,
       applicable: true,
       detail:
         surplusCount > 0
-          ? `Clears every required level, above the bar on ${surplusCount} of ${findings.length}.`
-          : `Meets ${findings.filter((f) => f.met).length} of ${findings.length} listed capabilities.`,
+          ? m.detailSkillSurplus(surplusCount, findings.length)
+          : m.detailSkillMet(findings.filter((f) => f.met).length, findings.length),
     });
   } else {
     factors.push({
       key: 'skillFit',
-      label: FACTOR_LABELS.skillFit,
+      label: m.factorLabels.skillFit,
       value: 0,
       weight: FACTOR_WEIGHTS.skillFit,
       applicable: false,
-      detail: 'The task lists no capability requirements.',
+      detail: m.detailNoRequirements,
     });
   }
 
@@ -163,20 +165,20 @@ export function scoreCandidate(
     const verified = mandatory.filter((f) => f.verified).length;
     factors.push({
       key: 'verification',
-      label: FACTOR_LABELS.verification,
+      label: m.factorLabels.verification,
       value: clamp01(verified / mandatory.length),
       weight: FACTOR_WEIGHTS.verification,
       applicable: true,
-      detail: `${verified} of ${mandatory.length} required capabilities signed off by a lead.`,
+      detail: m.detailVerified(verified, mandatory.length),
     });
   } else {
     factors.push({
       key: 'verification',
-      label: FACTOR_LABELS.verification,
+      label: m.factorLabels.verification,
       value: 0,
       weight: FACTOR_WEIGHTS.verification,
       applicable: false,
-      detail: 'No mandatory capabilities to verify.',
+      detail: m.detailNothingToVerify,
     });
   }
 
@@ -187,20 +189,20 @@ export function scoreCandidate(
     const avgYears = relevant.reduce((sum, s) => sum + s.yearsExperience, 0) / relevant.length;
     factors.push({
       key: 'experience',
-      label: FACTOR_LABELS.experience,
+      label: m.factorLabels.experience,
       value: clamp01(avgYears / 5),
       weight: FACTOR_WEIGHTS.experience,
       applicable: true,
-      detail: `${round(avgYears, 1)} years average in the required capabilities.`,
+      detail: m.detailExperience(fmtNum(round(avgYears, 1), m)),
     });
   } else {
     factors.push({
       key: 'experience',
-      label: FACTOR_LABELS.experience,
+      label: m.factorLabels.experience,
       value: 0,
       weight: FACTOR_WEIGHTS.experience,
       applicable: false,
-      detail: 'No overlapping capabilities to measure experience on.',
+      detail: m.detailNoOverlap,
     });
   }
 
@@ -209,11 +211,11 @@ export function scoreCandidate(
   const headroom = clamp01(remainingHoursAfterTask / capacity);
   factors.push({
     key: 'capacityHeadroom',
-    label: FACTOR_LABELS.capacityHeadroom,
+    label: m.factorLabels.capacityHeadroom,
     value: headroom,
     weight: FACTOR_WEIGHTS.capacityHeadroom,
     applicable: true,
-    detail: `${round(Math.max(0, remainingHoursAfterTask), 1)} h of ${round(capacity, 1)} h still free after this task.`,
+    detail: m.detailCapacity(fmtNum(round(Math.max(0, remainingHoursAfterTask), 1), m), fmtNum(round(capacity, 1), m)),
   });
 
   // --- Workload balance (relative to the shortlist) ------------------------
@@ -224,20 +226,20 @@ export function scoreCandidate(
     const value = clamp01(1 - candidate.openTaskCount / stats.maxOpenTaskCount);
     factors.push({
       key: 'workloadBalance',
-      label: FACTOR_LABELS.workloadBalance,
+      label: m.factorLabels.workloadBalance,
       value,
       weight: FACTOR_WEIGHTS.workloadBalance,
       applicable: true,
-      detail: `${candidate.openTaskCount} open task${candidate.openTaskCount === 1 ? '' : 's'}; busiest on the shortlist has ${stats.maxOpenTaskCount}.`,
+      detail: m.detailWorkload(candidate.openTaskCount, stats.maxOpenTaskCount),
     });
   } else {
     factors.push({
       key: 'workloadBalance',
-      label: FACTOR_LABELS.workloadBalance,
+      label: m.factorLabels.workloadBalance,
       value: 1,
       weight: FACTOR_WEIGHTS.workloadBalance,
       applicable: true,
-      detail: 'Nobody on the shortlist has open work.',
+      detail: m.detailNobodyBusy,
     });
   }
 
@@ -247,11 +249,11 @@ export function scoreCandidate(
     if (msLeft <= 0) {
       factors.push({
         key: 'deadlineFit',
-        label: FACTOR_LABELS.deadlineFit,
+        label: m.factorLabels.deadlineFit,
         value: 0,
         weight: FACTOR_WEIGHTS.deadlineFit,
         applicable: true,
-        detail: 'The deadline has already passed.',
+        detail: m.detailDeadlinePassed,
       });
     } else {
       const daysLeft = msLeft / 86_400_000;
@@ -262,11 +264,11 @@ export function scoreCandidate(
       const feasible = task.estimatedHours <= 0 ? 1 : clamp01(hoursAvailable / task.estimatedHours);
       factors.push({
         key: 'deadlineFit',
-        label: FACTOR_LABELS.deadlineFit,
+        label: m.factorLabels.deadlineFit,
         value: feasible,
         weight: FACTOR_WEIGHTS.deadlineFit,
         applicable: true,
-        detail: `About ${round(hoursAvailable, 1)} free hours before the deadline against a ${task.estimatedHours} h estimate.`,
+        detail: m.detailDeadline(fmtNum(round(hoursAvailable, 1), m), task.estimatedHours),
       });
     }
   } else {
@@ -276,7 +278,7 @@ export function scoreCandidate(
       value: 0,
       weight: FACTOR_WEIGHTS.deadlineFit,
       applicable: false,
-      detail: 'The task has no deadline.',
+      detail: m.detailNoDeadline,
     });
   }
 
@@ -294,22 +296,22 @@ export function scoreCandidate(
     const value = signals.filter(Boolean).length / signals.length;
     factors.push({
       key: 'contextFit',
-      label: FACTOR_LABELS.contextFit,
+      label: m.factorLabels.contextFit,
       value,
       weight: FACTOR_WEIGHTS.contextFit,
       applicable: true,
-      detail: `${candidate.positionTitle ?? 'No position'} · ${candidate.department}.`,
+      detail: m.detailContext(candidate.positionTitle ?? m.noPosition, candidate.department),
     });
   } else {
     factors.push({
       key: 'contextFit',
-      label: FACTOR_LABELS.contextFit,
+      label: m.factorLabels.contextFit,
       value: candidate.positionId ? 1 : 0.5,
       weight: FACTOR_WEIGHTS.contextFit,
       applicable: true,
       detail: candidate.positionId
-        ? `Holds the position ${candidate.positionTitle}.`
-        : 'No position assigned to this coworker yet.',
+        ? m.detailHoldsPosition(candidate.positionTitle ?? '')
+        : m.detailNoPositionYet,
     });
   }
 
@@ -324,16 +326,21 @@ export function scoreCandidate(
   return { score, factors };
 }
 
+/** Formats a number the way the reader's language writes it. */
+function fmtNum(value: number, m: EngineMessages): string {
+  return value.toLocaleString(m.locale === 'da' ? 'da-DK' : 'en-GB', { maximumFractionDigits: 1 });
+}
+
 /** Short sentence describing the biggest contributors to a score. */
-export function describeScore(factors: ScoreFactor[]): string {
+export function describeScore(factors: ScoreFactor[], m: EngineMessages = EN_MESSAGES): string {
   const applicable = factors.filter((f) => f.applicable);
   const totalWeight = applicable.reduce((sum, f) => sum + f.weight, 0) || 1;
   const ranked = [...applicable]
     .map((f) => ({ ...f, contribution: (f.value * f.weight) / totalWeight }))
     .sort((a, b) => b.contribution - a.contribution)
     .slice(0, 2);
-  if (ranked.length === 0) return 'No comparable factors.';
-  return ranked.map((f) => `${f.label.toLowerCase()} ${pct(f.value)}`).join(', ');
+  if (ranked.length === 0) return m.noComparableFactors;
+  return ranked.map((f) => m.describeFactor(f.label, Math.round(f.value * 100))).join(', ');
 }
 
 export { clamp01, round, WORKING_DAYS_PER_WEEK };

@@ -9,6 +9,7 @@ import {
   verifyPhoneCodeAction,
   type FormState,
 } from '@/app/actions/auth';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 
 type Method = 'email' | 'google' | 'phone';
 const INITIAL: FormState = { ok: false };
@@ -22,75 +23,74 @@ function Problem({ state }: { state: FormState }) {
   );
 }
 
-export default function SignInForm({ next }: { next: string }) {
+export default function SignInForm({ next, t }: { next: string; t: Dictionary }) {
   const [method, setMethod] = useState<Method>('email');
 
   return (
     <div className="stack" style={{ gap: 18 }}>
-      <div className="segmented" role="tablist" aria-label="How to sign in">
+      <div className="segmented" role="tablist" aria-label={t.auth.howToSignIn}>
         <button type="button" role="tab" aria-selected={method === 'email'} data-active={method === 'email'} onClick={() => setMethod('email')}>
-          <MailIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> E-mail
+          <MailIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> {t.auth.methodEmail}
         </button>
         <button type="button" role="tab" aria-selected={method === 'google'} data-active={method === 'google'} onClick={() => setMethod('google')}>
-          <GoogleIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> Google
+          <GoogleIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> {t.auth.methodGoogle}
         </button>
         <button type="button" role="tab" aria-selected={method === 'phone'} data-active={method === 'phone'} onClick={() => setMethod('phone')}>
-          <PhoneIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> Phone
+          <PhoneIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} /> {t.auth.methodPhone}
         </button>
       </div>
 
-      {method === 'email' && <EmailSignIn next={next} />}
-      {method === 'google' && <GoogleSignIn next={next} />}
-      {method === 'phone' && <PhoneSignIn next={next} />}
+      {method === 'email' && <EmailSignIn next={next} t={t} />}
+      {method === 'google' && <GoogleSignIn next={next} t={t} />}
+      {method === 'phone' && <PhoneSignIn next={next} t={t} />}
 
       <p className="small muted" style={{ textAlign: 'center' }}>
-        No account yet?{' '}
+        {t.auth.noAccountYet}{' '}
         <Link href="/signup" style={{ color: 'var(--accent)', fontWeight: 560 }}>
-          Create one
+          {t.auth.createOne}
         </Link>
       </p>
     </div>
   );
 }
 
-function EmailSignIn({ next }: { next: string }) {
+function EmailSignIn({ next, t }: { next: string; t: Dictionary }) {
   const [state, action, pending] = useActionState(signInEmailAction, INITIAL);
   return (
     <form action={action} className="stack" style={{ gap: 15 }}>
       <input type="hidden" name="next" value={next} />
       <Problem state={state} />
       <div className="field">
-        <label className="label" htmlFor="in-email">E-mail</label>
+        <label className="label" htmlFor="in-email">{t.auth.email}</label>
         <input id="in-email" name="email" type="email" className="input" autoComplete="email" required autoFocus />
       </div>
       <div className="field">
-        <label className="label" htmlFor="in-password">Password</label>
+        <label className="label" htmlFor="in-password">{t.auth.password}</label>
         <input id="in-password" name="password" type="password" className="input" autoComplete="current-password" required />
       </div>
       <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={pending}>
-        {pending ? <><span className="spin" /> Signing in…</> : 'Sign in'}
+        {pending ? <><span className="spin" /> {t.common.loading}</> : t.common.signIn}
       </button>
     </form>
   );
 }
 
-function GoogleSignIn({ next }: { next: string }) {
+function GoogleSignIn({ next, t }: { next: string; t: Dictionary }) {
   return (
     <form action="/api/auth/google/start" method="post" className="stack" style={{ gap: 14 }}>
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="mode" value="login" />
       <p className="small muted">
-        Signing in with a Google account that already exists here does not ask you to accept
-        anything again.
+        {t.auth.googleSignInNote}
       </p>
       <button type="submit" className="btn btn-lg btn-block">
-        <GoogleIcon size={17} /> Continue with Google
+        <GoogleIcon size={17} /> {t.auth.continueWithGoogle}
       </button>
     </form>
   );
 }
 
-function PhoneSignIn({ next }: { next: string }) {
+function PhoneSignIn({ next, t }: { next: string; t: Dictionary }) {
   const [requestState, requestAction, requesting] = useActionState(requestPhoneCodeAction, INITIAL);
   const [verifyState, verifyAction, verifying] = useActionState(verifyPhoneCodeAction, INITIAL);
   const [phone, setPhone] = useState('');
@@ -104,14 +104,14 @@ function PhoneSignIn({ next }: { next: string }) {
         {requestState.devCode && (
           <div className="notice notice-warn">
             <span>
-              <strong>Development mode.</strong> Nothing was actually sent. Your code is{' '}
+              <strong>{t.auth.devMode}</strong> {t.auth.devModeBody}{' '}
               <span className="mono" style={{ fontWeight: 700 }}>{requestState.devCode}</span>.
             </span>
           </div>
         )}
         <Problem state={verifyState} />
         <div className="field">
-          <label className="label" htmlFor="in-otp">Six-digit code</label>
+          <label className="label" htmlFor="in-otp">{t.auth.codeLabel}</label>
           <input
             id="in-otp"
             name="code"
@@ -126,7 +126,7 @@ function PhoneSignIn({ next }: { next: string }) {
           />
         </div>
         <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={verifying}>
-          {verifying ? <><span className="spin" /> Checking…</> : 'Sign in'}
+          {verifying ? <><span className="spin" /> {t.common.checking}</> : t.common.signIn}
         </button>
       </form>
     );
@@ -138,7 +138,7 @@ function PhoneSignIn({ next }: { next: string }) {
       <input type="hidden" name="mode" value="login" />
       <Problem state={requestState} />
       <div className="field">
-        <label className="label" htmlFor="in-phone">Mobile number</label>
+        <label className="label" htmlFor="in-phone">{t.auth.mobile}</label>
         <input
           id="in-phone"
           name="phone"
@@ -154,7 +154,7 @@ function PhoneSignIn({ next }: { next: string }) {
         />
       </div>
       <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={requesting}>
-        {requesting ? <><span className="spin" /> Sending a code…</> : 'Send me a code'}
+        {requesting ? <><span className="spin" /> {t.common.sending}</> : t.auth.sendCode}
       </button>
     </form>
   );

@@ -12,7 +12,8 @@
  */
 
 import { useState } from 'react';
-import { SKILL_LEVEL_LABELS } from '@/lib/domain/enums';
+import type { Dictionary } from '@/lib/i18n/dictionary';
+import { fill } from '@/lib/i18n/locale';
 import { PlusIcon, XIcon } from './icons';
 
 export interface SkillOption {
@@ -36,10 +37,12 @@ export default function RequirementBuilder({
   skills,
   showWeight = true,
   initialRows = 1,
+  t,
 }: {
   skills: SkillOption[];
   showWeight?: boolean;
   initialRows?: number;
+  t: Dictionary;
 }) {
   const [rows, setRows] = useState<Row[]>(() =>
     Array.from({ length: initialRows }, () => ({
@@ -90,20 +93,20 @@ export default function RequirementBuilder({
             }}
           >
             <div className="field">
-              <label className="tiny subtle">Capability</label>
+              <label className="tiny subtle">{t.coworkers.capability}</label>
               <select
                 className="select"
                 name="requirement_skill"
                 value={row.skillId}
                 onChange={(e) => update(row.key, { skillId: e.target.value })}
               >
-                <option value="">Choose a capability…</option>
+                <option value="">{t.coworkers.choose}</option>
                 {grouped.map(([category, items]) => (
                   <optgroup key={category} label={category}>
                     {items.map((s) => (
                       <option key={s.id} value={s.id} disabled={used.has(s.id) && s.id !== row.skillId}>
                         {s.name}
-                        {s.kind === 'CERTIFICATION' ? ' (certification)' : ''}
+                        {s.kind === 'CERTIFICATION' ? ` (${t.skillKind.CERTIFICATION.toLowerCase()})` : ''}
                       </option>
                     ))}
                   </optgroup>
@@ -113,7 +116,7 @@ export default function RequirementBuilder({
 
             <div className="field">
               <label className="tiny subtle">
-                {isCertification ? 'Requirement' : 'Minimum level'}
+                {isCertification ? t.tasks.colMinimum : t.coworkers.colLevel}
               </label>
               <select
                 className="select"
@@ -123,11 +126,11 @@ export default function RequirementBuilder({
                 onChange={(e) => update(row.key, { minLevel: Number(e.target.value) })}
               >
                 {isCertification ? (
-                  <option value={5}>Must hold it</option>
+                  <option value={5}>{t.tasks.mustHoldIt}</option>
                 ) : (
                   [1, 2, 3, 4, 5].map((n) => (
                     <option key={n} value={n}>
-                      {n} · {SKILL_LEVEL_LABELS[n]}
+                      {n} · {t.levels[n as 1|2|3|4|5]}
                     </option>
                   ))
                 )}
@@ -137,7 +140,7 @@ export default function RequirementBuilder({
             </div>
 
             <div className="field">
-              <label className="tiny subtle">Necessity</label>
+              <label className="tiny subtle">{t.tasks.colNecessity}</label>
               <select
                 className="select"
                 name="requirement_necessity"
@@ -146,14 +149,14 @@ export default function RequirementBuilder({
                   update(row.key, { necessity: e.target.value as 'MANDATORY' | 'PREFERRED' })
                 }
               >
-                <option value="MANDATORY">Mandatory — disqualifying</option>
-                <option value="PREFERRED">Preferred — a plus</option>
+                <option value="MANDATORY">{t.necessity.MANDATORY}</option>
+                <option value="PREFERRED">{t.necessity.PREFERRED}</option>
               </select>
             </div>
 
             {showWeight && (
               <div className="field">
-                <label className="tiny subtle">Weight</label>
+                <label className="tiny subtle">{t.tasks.colWeight}</label>
                 <select
                   className="select"
                   name="requirement_weight"
@@ -174,7 +177,7 @@ export default function RequirementBuilder({
               className="btn btn-ghost"
               style={{ padding: 9 }}
               onClick={() => removeRow(row.key)}
-              aria-label="Remove this requirement"
+              aria-label={t.common.remove}
               disabled={rows.length === 1}
             >
               <XIcon size={15} />
@@ -185,12 +188,12 @@ export default function RequirementBuilder({
 
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <button type="button" className="btn btn-sm" onClick={addRow}>
-          <PlusIcon size={14} /> Add a capability
+          <PlusIcon size={14} /> {t.skills.addCapability}
         </button>
         <span className="tiny subtle">
           {mandatoryCount === 0
-            ? 'No mandatory capability yet — anyone available would qualify.'
-            : `${mandatoryCount} mandatory requirement${mandatoryCount === 1 ? '' : 's'}: a coworker missing any one of them is removed from consideration.`}
+            ? t.tasks.noRequirements
+            : fill(t.tasks.requirementsCount, { n: mandatoryCount })}
         </span>
       </div>
     </div>

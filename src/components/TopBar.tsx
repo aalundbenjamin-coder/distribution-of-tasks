@@ -7,6 +7,8 @@ import NotificationBell from './NotificationBell';
 import { Avatar } from './ui';
 import type { BellNotification } from '@/app/actions/notifications';
 import { ChevronDownIcon } from './icons';
+import LanguageSwitcher from './LanguageSwitcher';
+import type { Locale } from '@/lib/i18n/locale';
 
 export interface NavItem {
   href: string;
@@ -18,11 +20,15 @@ export default function TopBar({
   user,
   notifications,
   unread,
+  locale,
+  labels,
 }: {
   navItems: NavItem[];
   user: { fullName: string; avatarColor: string; email: string | null; phone: string | null; roleLabel: string };
   notifications: BellNotification[];
   unread: number;
+  locale: Locale;
+  labels: { settings: string; allNotifications: string; signOut: string; appName: string };
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,7 +42,7 @@ export default function TopBar({
         <Link href="/dashboard" className="row" style={{ gap: 9, flex: 'none' }}>
           <LogoMark />
           <span style={{ fontWeight: 680, letterSpacing: '-0.02em', fontSize: 15 }}>
-            Distribution<span className="subtle" style={{ fontWeight: 500 }}> of Tasks</span>
+            {labels.appName}
           </span>
         </Link>
 
@@ -56,6 +62,8 @@ export default function TopBar({
             </Link>
           ))}
         </nav>
+
+        <LanguageSwitcher current={locale} compact />
 
         <NotificationBell initialItems={notifications} initialUnread={unread} />
 
@@ -93,7 +101,7 @@ export default function TopBar({
                     onClick={() => setMenuOpen(false)}
                     role="menuitem"
                   >
-                    Settings and consent
+                    {labels.settings}
                   </Link>
                   <Link
                     href="/notifications"
@@ -102,7 +110,7 @@ export default function TopBar({
                     onClick={() => setMenuOpen(false)}
                     role="menuitem"
                   >
-                    All notifications
+                    {labels.allNotifications}
                   </Link>
                   <form action="/api/auth/signout" method="post">
                     <button
@@ -111,7 +119,7 @@ export default function TopBar({
                       style={{ justifyContent: 'flex-start', color: 'var(--danger)' }}
                       role="menuitem"
                     >
-                      Sign out
+                      {labels.signOut}
                     </button>
                   </form>
                 </div>

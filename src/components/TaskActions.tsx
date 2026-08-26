@@ -17,7 +17,13 @@ import { AlertIcon, CheckIcon, HistoryIcon } from './icons';
 
 const INITIAL: ActionState = { ok: false };
 
-export function RedistributeButton({ taskId }: { taskId: string }) {
+export function RedistributeButton({
+  taskId,
+  labels,
+}: {
+  taskId: string;
+  labels: { run: string; running: string };
+}) {
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
@@ -36,7 +42,11 @@ export function RedistributeButton({ taskId }: { taskId: string }) {
           })
         }
       >
-        {pending ? <><span className="spin" /> Running…</> : <><HistoryIcon size={15} /> Run distribution again</>}
+        {pending ? (
+          <><span className="spin" /> {labels.running}</>
+        ) : (
+          <><HistoryIcon size={15} /> {labels.run}</>
+        )}
       </button>
       {message && <span className="tiny muted">{message}</span>}
     </div>
@@ -46,9 +56,11 @@ export function RedistributeButton({ taskId }: { taskId: string }) {
 export function ProgressButtons({
   taskId,
   status,
+  labels,
 }: {
   taskId: string;
   status: string;
+  labels: { start: string; complete: string; completed: string };
 }) {
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -61,14 +73,14 @@ export function ProgressButtons({
   }
 
   if (status === 'COMPLETED') {
-    return <span className="badge badge-ok"><CheckIcon size={12} /> Completed</span>;
+    return <span className="badge badge-ok"><CheckIcon size={12} /> {labels.completed}</span>;
   }
 
   return (
     <div className="row" style={{ gap: 9, flexWrap: 'wrap' }}>
       {status !== 'IN_PROGRESS' && (
         <button type="button" className="btn btn-sm" disabled={pending} onClick={() => move('IN_PROGRESS')}>
-          Start work
+          {labels.start}
         </button>
       )}
       <button
@@ -77,7 +89,7 @@ export function ProgressButtons({
         disabled={pending}
         onClick={() => move('COMPLETED')}
       >
-        <CheckIcon size={14} /> Mark completed
+        <CheckIcon size={14} /> {labels.complete}
       </button>
     </div>
   );
@@ -86,9 +98,23 @@ export function ProgressButtons({
 export function AssignForm({
   taskId,
   candidates,
+  labels,
 }: {
   taskId: string;
   candidates: { coworkerId: string; fullName: string; eligible: boolean; score: number }[];
+  labels: {
+    assignTo: string;
+    reason: string;
+    reasonPlaceholder: string;
+    reasonHint: string;
+    qualified: string;
+    unqualified: string;
+    notQualified: string;
+    doesNotMeet: string;
+    acknowledge: string;
+    submit: string;
+    submitting: string;
+  };
 }) {
   const [state, action, pending] = useActionState(confirmProposalAction, INITIAL);
   const [coworkerId, setCoworkerId] = useState(
@@ -110,7 +136,7 @@ export function AssignForm({
       )}
 
       <div className="field">
-        <label className="label" htmlFor="assign-who">Assign to</label>
+        <label className="label" htmlFor="assign-who">{labels.assignTo}</label>
         <select
           id="assign-who"
           name="coworkerId"
@@ -119,7 +145,7 @@ export function AssignForm({
           onChange={(e) => setCoworkerId(e.target.value)}
           required
         >
-          <optgroup label="Qualified">
+          <optgroup label={labels.qualified}>
             {candidates
               .filter((c) => c.eligible)
               .map((c) => (
@@ -129,12 +155,12 @@ export function AssignForm({
               ))}
           </optgroup>
           {candidates.some((c) => !c.eligible) && (
-            <optgroup label="Does not meet the requirements">
+            <optgroup label={labels.unqualified}>
               {candidates
                 .filter((c) => !c.eligible)
                 .map((c) => (
                   <option key={c.coworkerId} value={c.coworkerId}>
-                    {c.fullName} — not qualified
+                    {c.fullName} — {labels.notQualified}
                   </option>
                 ))}
             </optgroup>
@@ -143,15 +169,15 @@ export function AssignForm({
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="assign-reason">Reason</label>
+        <label className="label" htmlFor="assign-reason">{labels.reason}</label>
         <input
           id="assign-reason"
           name="reason"
           className="input"
-          placeholder="Why this person, in your words"
+          placeholder={labels.reasonPlaceholder}
           required={needsAcknowledgement}
         />
-        <span className="hint">Stored on the assignment and in the audit trail.</span>
+        <span className="hint">{labels.reasonHint}</span>
       </div>
 
       {needsAcknowledgement && (
@@ -160,17 +186,17 @@ export function AssignForm({
           <span>
             <span className="row" style={{ gap: 7, fontWeight: 620, fontSize: 13.5, color: 'var(--danger)' }}>
               <AlertIcon size={15} />
-              {chosen?.fullName} does not meet every requirement
+              {labels.doesNotMeet.replace('{name}', chosen?.fullName ?? '')}
             </span>
             <span className="hint" style={{ display: 'block', marginTop: 3 }}>
-              I am assigning this anyway and understand the override is recorded against my name.
+              {labels.acknowledge}
             </span>
           </span>
         </label>
       )}
 
       <button type="submit" className="btn btn-primary" disabled={pending}>
-        {pending ? <><span className="spin" /> Assigning…</> : 'Assign this task'}
+        {pending ? <><span className="spin" /> {labels.submitting}</> : labels.submit}
       </button>
     </form>
   );

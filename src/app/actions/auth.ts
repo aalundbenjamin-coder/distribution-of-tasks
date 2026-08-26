@@ -58,9 +58,17 @@ function readConsents(formData: FormData): ConsentDecision[] {
     'OPERATIONAL_EMAIL',
     'OPERATIONAL_SMS',
   ];
+  // The form shows one box for both documents, because there is one decision to
+  // make. They are still recorded as two consents: the privacy policy and the
+  // terms can be revised independently, and the log has to say which version of
+  // which document a person agreed to.
+  const acceptedDocuments =
+    formData.get('accept_documents') === 'on' ||
+    (formData.get('accept_terms') === 'on' && formData.get('accept_privacy') === 'on');
+
   const decisions: ConsentDecision[] = [
-    { type: 'TERMS_OF_SERVICE', granted: formData.get('accept_terms') === 'on' },
-    { type: 'PRIVACY_POLICY', granted: formData.get('accept_privacy') === 'on' },
+    { type: 'TERMS_OF_SERVICE', granted: acceptedDocuments },
+    { type: 'PRIVACY_POLICY', granted: acceptedDocuments },
   ];
   for (const type of optional) {
     decisions.push({ type, granted: formData.get(`consent_${type}`) === 'on' });

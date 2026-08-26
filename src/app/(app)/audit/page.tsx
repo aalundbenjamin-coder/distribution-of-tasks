@@ -1,7 +1,16 @@
 import type { Metadata } from 'next';
 import { requireAdmin } from '@/lib/server/permissions';
+import { getTranslations } from '@/lib/i18n';
 import { recentAuditEvents } from '@/lib/server/audit';
-import { Avatar, Badge, Card, PageHeader, formatDateTime } from '@/components/ui';
+import {
+  Avatar,
+  Badge,
+  Card,
+  PageHeader,
+} from '@/components/ui';
+import {
+  LocalDateTime,
+} from '@/components/ui-labels';
 
 export const metadata: Metadata = { title: 'Audit trail' };
 export const dynamic = 'force-dynamic';
@@ -16,28 +25,29 @@ const NOTABLE = new Set([
 
 export default async function AuditPage() {
   await requireAdmin('/audit');
+  const { t } = await getTranslations();
   const events = await recentAuditEvents(150);
 
   return (
     <>
       <PageHeader
-        title="Audit trail"
-        lede="Append-only. Every consequential action, including the ones where a person overrode the system."
+        title={t.audit.title}
+        lede={t.audit.lede}
       />
 
       <Card padded={false}>
         {events.length === 0 ? (
-          <div className="empty">Nothing recorded yet.</div>
+          <div className="empty">{t.audit.empty}</div>
         ) : (
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
-                  <th style={{ width: 210 }}>Action</th>
-                  <th style={{ width: 190 }}>Who</th>
-                  <th style={{ width: 160 }}>Entity</th>
-                  <th>Detail</th>
-                  <th style={{ width: 190 }}>When</th>
+                  <th style={{ width: 210 }}>{t.audit.colAction}</th>
+                  <th style={{ width: 190 }}>{t.audit.colWho}</th>
+                  <th style={{ width: 160 }}>{t.audit.colEntity}</th>
+                  <th>{t.audit.colDetail}</th>
+                  <th style={{ width: 190 }}>{t.dash.colWhen}</th>
                 </tr>
               </thead>
               <tbody>
@@ -55,7 +65,7 @@ export default async function AuditPage() {
                           <span className="small">{event.actor.fullName}</span>
                         </span>
                       ) : (
-                        <span className="subtle small">system</span>
+                        <span className="subtle small">{t.audit.system}</span>
                       )}
                     </td>
                     <td className="tiny subtle mono">
@@ -67,7 +77,7 @@ export default async function AuditPage() {
                         {event.dataJson === '{}' ? '—' : event.dataJson.slice(0, 240)}
                       </code>
                     </td>
-                    <td className="tiny subtle">{formatDateTime(event.createdAt)}</td>
+                    <td className="tiny subtle">{<LocalDateTime value={event.createdAt} />}</td>
                   </tr>
                 ))}
               </tbody>

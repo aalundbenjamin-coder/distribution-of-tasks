@@ -11,10 +11,11 @@
  */
 
 import type { EvaluatedCandidate, MatchResult } from '@/lib/matching/types';
-import { FACTOR_DESCRIPTIONS } from '@/lib/matching/scoring';
-import type { FactorKey } from '@/lib/matching/types';
-import { Badge, LevelPips, ScoreBar } from './ui';
+import { Badge, ScoreBar } from './ui';
+import { LevelPips } from './ui-labels';
 import { AlertIcon, CheckIcon, ScaleIcon, ShieldIcon, XIcon } from './icons';
+import { getTranslations } from '@/lib/i18n';
+import type { Dictionary as Dict } from '@/lib/i18n/dictionary';
 
 function pct(n: number): string {
   return `${Math.round(n * 100)}%`;
@@ -47,7 +48,7 @@ export function MatchOutcomeNotice({ result }: { result: MatchResult }) {
 }
 
 /** The ranked shortlist: everyone who could legitimately take this task. */
-export function ShortlistTable({
+export async function ShortlistTable({
   candidates,
   recommendedId,
   assignedId,
@@ -62,15 +63,11 @@ export function ShortlistTable({
   assignedId?: string | null;
   actionColumn?: (candidate: EvaluatedCandidate) => React.ReactNode;
 }) {
+  const { t } = await getTranslations();
   const eligible = candidates.filter((c) => c.eligible);
 
   if (eligible.length === 0) {
-    return (
-      <div className="empty">
-        Nobody currently meets every requirement of this task. The table below shows what stood in
-        each person&rsquo;s way.
-      </div>
-    );
+    return <div className="empty">{t.tasks.nobodyMeets}</div>;
   }
 
   return (
@@ -79,10 +76,10 @@ export function ShortlistTable({
         <thead>
           <tr>
             <th style={{ width: 44 }}>#</th>
-            <th>Coworker</th>
-            <th style={{ width: 160 }}>Match</th>
-            <th style={{ width: 120 }}>Workload</th>
-            <th>Why this position in the order</th>
+            <th>{t.tasks.colCoworker}</th>
+            <th style={{ width: 160 }}>{t.tasks.colMatch}</th>
+            <th style={{ width: 120 }}>{t.tasks.colWorkload}</th>
+            <th>{t.tasks.rankHeader}</th>
             {actionColumn && <th style={{ width: 130 }} />}
           </tr>
         </thead>
@@ -99,10 +96,10 @@ export function ShortlistTable({
                 <div style={{ fontWeight: 600 }}>{candidate.fullName}</div>
                 <div className="row" style={{ gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
                   {candidate.coworkerId === assignedId && (
-                    <Badge tone="ok" dot>Holds this task</Badge>
+                    <Badge tone="ok" dot>{t.tasks.holdsThisTask}</Badge>
                   )}
                   {candidate.coworkerId === recommendedId && candidate.coworkerId !== assignedId && (
-                    <Badge tone="accent" dot>Best match now</Badge>
+                    <Badge tone="accent" dot>{t.tasks.bestMatchNow}</Badge>
                   )}
                 </div>
               </td>
@@ -110,13 +107,13 @@ export function ShortlistTable({
                 <ScoreBar score={candidate.score} tone={candidate.score >= 0.75 ? 'ok' : undefined} />
               </td>
               <td className="small muted num">
-                {candidate.openTaskCount} open
+                {candidate.openTaskCount} {t.tasks.openSuffix}
                 <div className="tiny subtle">
                   {Math.round(candidate.committedHours)}/{Math.round(candidate.weeklyCapacityHours)} h
                 </div>
               </td>
               <td>
-                <FactorSummary candidate={candidate} />
+                <FactorSummary candidate={candidate} t={t} />
               </td>
               {actionColumn && <td>{actionColumn(candidate)}</td>}
             </tr>
@@ -127,7 +124,7 @@ export function ShortlistTable({
   );
 }
 
-function FactorSummary({ candidate }: { candidate: EvaluatedCandidate }) {
+function FactorSummary({ candidate, t }: { candidate: EvaluatedCandidate; t: Dict }) {
   const applicable = candidate.factors.filter((f) => f.applicable);
   const total = applicable.reduce((sum, f) => sum + f.weight, 0) || 1;
   const top = [...applicable]
@@ -138,7 +135,7 @@ function FactorSummary({ candidate }: { candidate: EvaluatedCandidate }) {
     <div className="stack" style={{ gap: 6 }}>
       <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
         {top.map((factor) => (
-          <span key={factor.key} className="badge" title={FACTOR_DESCRIPTIONS[factor.key as FactorKey]}>
+          <span key={factor.key} className="badge">
             {factor.label} {pct(factor.value)}
           </span>
         ))}
@@ -160,17 +157,17 @@ function FactorSummary({ candidate }: { candidate: EvaluatedCandidate }) {
           className="tiny subtle"
           style={{ cursor: 'pointer', userSelect: 'none', width: 'fit-content' }}
         >
-          Full breakdown
+          {t.tasks.fullBreakdown}
         </summary>
         <div style={{ marginTop: 8 }}>
-          <FactorTable candidate={candidate} />
+          <FactorTable candidate={candidate} t={t} />
         </div>
       </details>
     </div>
   );
 }
 
-function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
+function FactorTable({ candidate, t }: { candidate: EvaluatedCandidate; t: Dict }) {
   const applicable = candidate.factors.filter((f) => f.applicable);
   const totalWeight = applicable.reduce((sum, f) => sum + f.weight, 0) || 1;
 
@@ -179,10 +176,10 @@ function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
       <table className="data" style={{ fontSize: 12.5 }}>
         <thead>
           <tr>
-            <th>Factor</th>
-            <th style={{ width: 90 }}>Value</th>
-            <th style={{ width: 80 }}>Weight</th>
-            <th>Detail</th>
+            <th>{t.tasks.factor}</th>
+            <th style={{ width: 90 }}>{t.tasks.value}</th>
+            <th style={{ width: 80 }}>{t.tasks.weight}</th>
+            <th>{t.tasks.detail}</th>
           </tr>
         </thead>
         <tbody>
@@ -191,7 +188,7 @@ function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
               <td style={{ fontWeight: 560 }}>{factor.label}</td>
               <td className="num">{factor.applicable ? pct(factor.value) : '—'}</td>
               <td className="num subtle">
-                {factor.applicable ? pct(factor.weight / totalWeight) : 'n/a'}
+                {factor.applicable ? pct(factor.weight / totalWeight) : '—'}
               </td>
               <td className="muted">{factor.detail}</td>
             </tr>
@@ -201,7 +198,7 @@ function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
 
       {candidate.requirementFindings.length > 0 && (
         <div>
-          <div className="eyebrow" style={{ marginBottom: 6 }}>Requirement by requirement</div>
+          <div className="eyebrow" style={{ marginBottom: 6 }}>{t.tasks.requirementByRequirement}</div>
           <div className="stack" style={{ gap: 5 }}>
             {candidate.requirementFindings.map((finding) => (
               <div
@@ -214,10 +211,10 @@ function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
                     {finding.met ? <CheckIcon size={13} /> : <XIcon size={13} />}
                   </span>
                   <span className="small">{finding.skillName}</span>
-                  {finding.necessity === 'PREFERRED' && <span className="badge">Preferred</span>}
+                  {finding.necessity === 'PREFERRED' && <span className="badge">{t.necessity.PREFERRED}</span>}
                   {finding.verified && (
                     <span className="badge badge-ok">
-                      <ShieldIcon size={11} /> Verified
+                      <ShieldIcon size={11} /> {t.common.verified}
                     </span>
                   )}
                 </span>
@@ -235,10 +232,11 @@ function FactorTable({ candidate }: { candidate: EvaluatedCandidate }) {
 }
 
 /** Everyone the gate removed, and the reason. */
-export function BlockedTable({ candidates }: { candidates: EvaluatedCandidate[] }) {
+export async function BlockedTable({ candidates }: { candidates: EvaluatedCandidate[] }) {
+  const { t } = await getTranslations();
   const blocked = candidates.filter((c) => !c.eligible);
   if (blocked.length === 0) {
-    return <div className="empty">Every coworker considered was qualified for this task.</div>;
+    return <div className="empty">{t.tasks.everyoneQualified}</div>;
   }
 
   return (
@@ -246,8 +244,8 @@ export function BlockedTable({ candidates }: { candidates: EvaluatedCandidate[] 
       <table className="data">
         <thead>
           <tr>
-            <th>Coworker</th>
-            <th>Why they were not considered</th>
+            <th>{t.tasks.colCoworker}</th>
+            <th>{t.tasks.whyNotConsidered}</th>
           </tr>
         </thead>
         <tbody>

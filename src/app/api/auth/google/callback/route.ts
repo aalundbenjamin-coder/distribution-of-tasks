@@ -58,8 +58,12 @@ async function handle(request: Request, params: URLSearchParams) {
     const code = params.get('code');
     if (!code || !verifier) return fail('google_code');
     try {
-      profile = await exchangeCodeForProfile({ code, codeVerifier: verifier, requestUrl: request.url });
-    } catch {
+      profile = await exchangeCodeForProfile({ code, codeVerifier: verifier, request });
+    } catch (error) {
+      // Google's own wording is the only thing that identifies a
+      // redirect_uri_mismatch or an expired code, so it goes to the server log
+      // rather than being swallowed into a generic failure.
+      console.error('[google] token exchange failed:', error);
       return fail('google_exchange');
     }
   } else if (isGoogleSimulationAllowed()) {

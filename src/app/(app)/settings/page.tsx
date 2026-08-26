@@ -9,8 +9,16 @@ import {
   getConsentState,
 } from '@/lib/auth/consent';
 import { ConsentForm, PhoneLinkForm, ReacceptTermsForm } from '@/components/SettingsForms';
-import { Badge, Card, PageHeader, formatDateTime } from '@/components/ui';
-import { AUTH_PROVIDER_LABELS, CONSENT_LABELS, USER_ROLE_LABELS, type AuthProvider, type ConsentType } from '@/lib/domain/enums';
+import {
+  Badge,
+  Card,
+  PageHeader,
+} from '@/components/ui';
+import {
+  LocalDateTime,
+} from '@/components/ui-labels';
+import type { AuthProvider, ConsentType } from '@/lib/domain/enums';
+import { getTranslations } from '@/lib/i18n';
 import { emailTransportKind, smsTransportKind } from '@/lib/notifications/transports';
 import { AlertIcon, GoogleIcon, MailIcon, PhoneIcon, ShieldIcon } from '@/components/icons';
 
@@ -19,6 +27,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const user = await requireUser('/settings');
+  const { locale, t } = await getTranslations();
 
   const [consent, history, identities, sessions] = await Promise.all([
     getConsentState(user.id),
@@ -34,36 +43,35 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader
-        title="Settings"
-        lede="Your account, what you have agreed to, and where notifications go."
+        title={t.settings.title}
+        lede={t.settings.lede}
       />
 
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 380px)', alignItems: 'start' }}>
         <div className="stack" style={{ gap: 18 }}>
           {!termsCurrent && (
-            <Card title="The terms have changed">
+            <Card title={t.settings.termsChanged}>
               <div className="notice notice-warn" style={{ marginBottom: 14 }}>
                 <AlertIcon size={17} style={{ flex: 'none', marginTop: 1 }} />
                 <span>
-                  Your acceptance on file is for an older version. Your previous agreement is not
-                  carried over automatically — please read the current{' '}
+                  {t.settings.termsChangedBody}{' '}
                   <Link href="/legal/terms" target="_blank" style={{ textDecoration: 'underline' }}>
-                    terms of service
+                    {t.consent.TERMS_OF_SERVICE.toLowerCase()}
                   </Link>{' '}
-                  and{' '}
+                  {t.settings.and}{' '}
                   <Link href="/legal/privacy" target="_blank" style={{ textDecoration: 'underline' }}>
-                    privacy policy
+                    {t.consent.PRIVACY_POLICY.toLowerCase()}
                   </Link>
                   .
                 </span>
               </div>
-              <ReacceptTermsForm />
+              <ReacceptTermsForm labels={{ accept: t.settings.acceptCurrent, recording: t.settings.recording }} />
             </Card>
           )}
 
           <Card
-            title="Notifications"
-            subtitle="The bell always works. These decide whether a copy also goes to your inbox or your phone."
+            title={t.settings.notificationsTitle}
+            subtitle={t.settings.notificationsSub}
           >
             <ConsentForm
               values={{
@@ -76,43 +84,44 @@ export default async function SettingsPage() {
               hasPhone={Boolean(user.phone)}
               emailVerified={user.emailVerified}
               phoneVerified={user.phoneVerified}
+              t={t}
             />
           </Card>
 
           <Card
-            title="Consent history"
-            subtitle="Every decision you have made, kept so we can always show what applied on a given day."
+            title={t.settings.consentHistory}
+            subtitle={t.settings.consentHistorySub}
             padded={false}
           >
             {history.length === 0 ? (
-              <div className="empty">No consent decisions recorded.</div>
+              <div className="empty">{t.settings.noConsent}</div>
             ) : (
               <div className="table-wrap">
                 <table className="data">
                   <thead>
                     <tr>
-                      <th>What</th>
-                      <th style={{ width: 110 }}>Decision</th>
-                      <th style={{ width: 120 }}>Where</th>
-                      <th style={{ width: 190 }}>When</th>
+                      <th>{t.settings.colWhat}</th>
+                      <th style={{ width: 110 }}>{t.settings.colDecision}</th>
+                      <th style={{ width: 120 }}>{t.settings.colWhere}</th>
+                      <th style={{ width: 190 }}>{t.dash.colWhen}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {history.map((row) => (
                       <tr key={row.id}>
                         <td className="small">
-                          {CONSENT_LABELS[row.type as ConsentType] ?? row.type}
+                          {t.consent[row.type as ConsentType] ?? row.type}
                           {row.documentVersion && (
                             <span className="tiny subtle"> · v{row.documentVersion}</span>
                           )}
                         </td>
                         <td>
                           <Badge tone={row.granted ? 'ok' : 'neutral'}>
-                            {row.granted ? 'Agreed' : 'Declined'}
+                            {row.granted ? t.settings.agreed : t.settings.declined}
                           </Badge>
                         </td>
                         <td className="tiny subtle">{row.source.toLowerCase()}</td>
-                        <td className="tiny subtle">{formatDateTime(row.createdAt)}</td>
+                        <td className="tiny subtle">{<LocalDateTime value={row.createdAt} />}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -123,49 +132,49 @@ export default async function SettingsPage() {
         </div>
 
         <div className="stack" style={{ gap: 18 }}>
-          <Card title="Your account">
+          <Card title={t.settings.yourAccount}>
             <dl className="stack" style={{ gap: 12, margin: 0 }}>
-              <Row label="Name" value={user.fullName} />
+              <Row label={t.settings.name} value={user.fullName} />
               <Row
-                label="E-mail"
+                label={t.auth.email}
                 value={
                   user.email ? (
                     <span className="row" style={{ gap: 7 }}>
                       {user.email}
                       {user.emailVerified ? (
-                        <Badge tone="ok">Verified</Badge>
+                        <Badge tone="ok">{t.common.verified}</Badge>
                       ) : (
-                        <Badge tone="warn">Unverified</Badge>
+                        <Badge tone="warn">{t.settings.unverified}</Badge>
                       )}
                     </span>
                   ) : (
-                    <span className="subtle">Not set</span>
+                    <span className="subtle">{t.settings.notSet}</span>
                   )
                 }
               />
               <Row
-                label="Phone"
+                label={t.settings.phoneNumber}
                 value={
                   user.phone ? (
                     <span className="row" style={{ gap: 7 }}>
                       {user.phone}
                       {user.phoneVerified ? (
-                        <Badge tone="ok">Verified</Badge>
+                        <Badge tone="ok">{t.common.verified}</Badge>
                       ) : (
-                        <Badge tone="warn">Unverified</Badge>
+                        <Badge tone="warn">{t.settings.unverified}</Badge>
                       )}
                     </span>
                   ) : (
-                    <span className="subtle">Not set</span>
+                    <span className="subtle">{t.settings.notSet}</span>
                   )
                 }
               />
-              <Row label="Role" value={USER_ROLE_LABELS[user.role]} />
-              <Row label="Active sessions" value={String(sessions)} />
+              <Row label={t.settings.role} value={t.roles[user.role]} />
+              <Row label={t.settings.activeSessions} value={String(sessions)} />
             </dl>
           </Card>
 
-          <Card title="How you sign in" subtitle="Add a second method and both work.">
+          <Card title={t.settings.howYouSignIn} subtitle={t.settings.howYouSignInSub}>
             <div className="stack" style={{ gap: 9, marginBottom: 16 }}>
               {identities.map((identity) => (
                 <div key={identity.id} className="row" style={{ gap: 9 }}>
@@ -179,24 +188,42 @@ export default async function SettingsPage() {
                     )}
                   </span>
                   <span className="small" style={{ flex: 1 }}>
-                    {AUTH_PROVIDER_LABELS[identity.provider as AuthProvider] ?? identity.provider}
+                    {identity.provider === 'GOOGLE'
+                      ? t.auth.methodGoogle
+                      : identity.provider === 'PHONE'
+                        ? t.auth.methodPhone
+                        : t.auth.methodEmail}
                   </span>
                   <span className="tiny subtle">{identity.label}</span>
                 </div>
               ))}
             </div>
 
-            {!user.phone && <PhoneLinkForm />}
+            {!user.phone && (
+              <PhoneLinkForm
+                labels={{
+                  phoneNumber: t.settings.phoneNumber,
+                  hint: t.settings.linkPhoneHint,
+                  send: t.settings.sendVerification,
+                  sending: t.common.sending,
+                  code: t.auth.codeLabel,
+                  verify: t.settings.verifyNumber,
+                  checking: t.common.checking,
+                  devMode: t.auth.devMode,
+                  devBody: t.auth.devModeBody,
+                }}
+              />
+            )}
           </Card>
 
-          <Card title="Delivery on this deployment">
+          <Card title={t.settings.delivery}>
             <div className="stack" style={{ gap: 10 }}>
               <div className="row" style={{ gap: 9, justifyContent: 'space-between' }}>
                 <span className="small row" style={{ gap: 7 }}>
-                  <MailIcon size={15} /> E-mail
+                  <MailIcon size={15} /> {t.auth.email}
                 </span>
                 <Badge tone={emailTransport === 'LOCAL' ? 'warn' : 'ok'}>
-                  {emailTransport === 'LOCAL' ? 'Simulated' : emailTransport}
+                  {emailTransport === 'LOCAL' ? t.settings.simulated : emailTransport}
                 </Badge>
               </div>
               <div className="row" style={{ gap: 9, justifyContent: 'space-between' }}>
@@ -204,26 +231,25 @@ export default async function SettingsPage() {
                   <PhoneIcon size={15} /> SMS
                 </span>
                 <Badge tone={smsTransport === 'LOCAL' ? 'warn' : 'ok'}>
-                  {smsTransport === 'LOCAL' ? 'Simulated' : smsTransport}
+                  {smsTransport === 'LOCAL' ? t.settings.simulated : smsTransport}
                 </Badge>
               </div>
               {(emailTransport === 'LOCAL' || smsTransport === 'LOCAL') && (
                 <p className="tiny muted">
-                  No provider is configured for the simulated channels, so messages are logged on the
-                  server rather than sent. The bell is unaffected.
+                  {t.settings.simulatedNote}
                 </p>
               )}
             </div>
           </Card>
 
-          <Card title="Documents">
+          <Card title={t.settings.documents}>
             <div className="stack" style={{ gap: 9 }}>
               <Link href="/legal/terms" className="row small" style={{ gap: 8 }}>
-                <ShieldIcon size={15} /> Terms of service
+                <ShieldIcon size={15} /> {t.consent.TERMS_OF_SERVICE}
                 <span className="tiny subtle">v{TERMS_VERSION}</span>
               </Link>
               <Link href="/legal/privacy" className="row small" style={{ gap: 8 }}>
-                <ShieldIcon size={15} /> Privacy policy
+                <ShieldIcon size={15} /> {t.consent.PRIVACY_POLICY}
                 <span className="tiny subtle">v{PRIVACY_VERSION}</span>
               </Link>
             </div>

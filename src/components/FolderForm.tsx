@@ -13,14 +13,8 @@ import { useActionState } from 'react';
 import Link from 'next/link';
 import { createFolderAction, updateFolderPolicyAction } from '@/app/actions/folders';
 import type { ActionState } from '@/app/actions/catalogue';
-import {
-  AMBIGUITY_POLICY_LABELS,
-  ROUTING_MODE_LABELS,
-  ROUTING_MODES,
-  TIE_BREAKS,
-  TIE_BREAK_LABELS,
-  AMBIGUITY_POLICIES,
-} from '@/lib/domain/enums';
+import { ROUTING_MODES, TIE_BREAKS, AMBIGUITY_POLICIES } from '@/lib/domain/enums';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 
 const INITIAL: ActionState = { ok: false };
 
@@ -32,36 +26,35 @@ export interface PolicyValues {
   minimumScore: number;
 }
 
-function PolicyFields({ values }: { values: PolicyValues }) {
+function PolicyFields({ values, t }: { values: PolicyValues; t: Dictionary }) {
   return (
     <div className="stack" style={{ gap: 15 }}>
       <div className="field">
-        <label className="label" htmlFor="f-routing">When a task arrives</label>
+        <label className="label" htmlFor="f-routing">{t.folders.whenTaskArrives}</label>
         <select id="f-routing" name="routingMode" className="select" defaultValue={values.routingMode}>
           {ROUTING_MODES.map((mode) => (
-            <option key={mode} value={mode}>{ROUTING_MODE_LABELS[mode]}</option>
+            <option key={mode} value={mode}>{t.routingMode[mode]}</option>
           ))}
         </select>
         <span className="hint">
-          Auto-assign is what saves the time. Propose-only is for work where a person should always
-          have the last word.
+          {t.folders.routingHint}
         </span>
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="f-tie">When two coworkers score the same</label>
+        <label className="label" htmlFor="f-tie">{t.folders.whenSameScore}</label>
         <select id="f-tie" name="tieBreak" className="select" defaultValue={values.tieBreak}>
           {TIE_BREAKS.map((mode) => (
-            <option key={mode} value={mode}>{TIE_BREAK_LABELS[mode]}</option>
+            <option key={mode} value={mode}>{t.tieBreak[mode]}</option>
           ))}
         </select>
         <span className="hint">
-          Load balancing and round-robin are what stop one strong coworker absorbing everything.
+          {t.folders.tieHint}
         </span>
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="f-ambiguity">When they are too close to separate</label>
+        <label className="label" htmlFor="f-ambiguity">{t.folders.whenTooClose}</label>
         <select
           id="f-ambiguity"
           name="ambiguityPolicy"
@@ -69,17 +62,17 @@ function PolicyFields({ values }: { values: PolicyValues }) {
           defaultValue={values.ambiguityPolicy}
         >
           {AMBIGUITY_POLICIES.map((mode) => (
-            <option key={mode} value={mode}>{AMBIGUITY_POLICY_LABELS[mode]}</option>
+            <option key={mode} value={mode}>{t.ambiguity[mode]}</option>
           ))}
         </select>
         <span className="hint">
-          Strict is the safe setting: the task goes to your review queue instead of being guessed at.
+          {t.folders.ambiguityHint}
         </span>
       </div>
 
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
         <div className="field">
-          <label className="label" htmlFor="f-epsilon">Tie band</label>
+          <label className="label" htmlFor="f-epsilon">{t.folders.tieBand}</label>
           <div className="row" style={{ gap: 8 }}>
             <input
               id="f-epsilon"
@@ -93,11 +86,11 @@ function PolicyFields({ values }: { values: PolicyValues }) {
             />
             <span className="muted">%</span>
           </div>
-          <span className="hint">Scores within this of the leader count as tied.</span>
+          <span className="hint">{t.folders.tieBandHint}</span>
         </div>
 
         <div className="field">
-          <label className="label" htmlFor="f-minimum">Minimum score to auto-assign</label>
+          <label className="label" htmlFor="f-minimum">{t.folders.minimumScore}</label>
           <div className="row" style={{ gap: 8 }}>
             <input
               id="f-minimum"
@@ -111,7 +104,7 @@ function PolicyFields({ values }: { values: PolicyValues }) {
             />
             <span className="muted">%</span>
           </div>
-          <span className="hint">A weaker best match waits for you instead.</span>
+          <span className="hint">{t.folders.minimumHint}</span>
         </div>
       </div>
     </div>
@@ -120,8 +113,10 @@ function PolicyFields({ values }: { values: PolicyValues }) {
 
 export function NewFolderForm({
   positions,
+  t,
 }: {
   positions: { id: string; title: string }[];
+  t: Dictionary;
 }) {
   const [state, action, pending] = useActionState(createFolderAction, INITIAL);
 
@@ -130,8 +125,8 @@ export function NewFolderForm({
       <div className="card card-pad stack" style={{ gap: 14 }}>
         <div className="notice notice-ok">{state.message}</div>
         <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
-          <Link href={`/folders/${state.createdId}`} className="btn btn-primary">Open the folder</Link>
-          <Link href={`/tasks/new?folder=${state.createdId}`} className="btn">Send it a task</Link>
+          <Link href={`/folders/${state.createdId}`} className="btn btn-primary">{t.folders.openFolder}</Link>
+          <Link href={`/tasks/new?folder=${state.createdId}`} className="btn">{t.folders.sendTask}</Link>
         </div>
       </div>
     );
@@ -144,47 +139,47 @@ export function NewFolderForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">The folder</div>
-            <div className="card-sub">One folder per kind of work that routes the same way.</div>
+            <div className="card-title">{t.folders.theFolder}</div>
+            <div className="card-sub">{t.folders.theFolderSub}</div>
           </div>
         </header>
         <div className="card-pad stack" style={{ gap: 15 }}>
           <div className="field">
-            <label className="label" htmlFor="f-name">Name</label>
+            <label className="label" htmlFor="f-name">{t.folders.name}</label>
             <input
               id="f-name"
               name="name"
               className={`input ${state.field === 'name' ? 'input-error' : ''}`}
               required
               autoFocus
-              placeholder="Electrical callouts"
+              placeholder={t.folders.namePlaceholder}
             />
           </div>
 
           <div className="field">
-            <label className="label" htmlFor="f-desc">What belongs in here</label>
+            <label className="label" htmlFor="f-desc">{t.folders.whatBelongs}</label>
             <textarea
               id="f-desc"
               name="description"
               className="textarea"
-              placeholder="Unplanned electrical work on customer sites, up to a day."
+              placeholder={t.folders.whatBelongsPlaceholder}
             />
           </div>
 
           <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
             <div className="field">
-              <label className="label" htmlFor="f-dept">Department</label>
-              <input id="f-dept" name="department" className="input" placeholder="Field Service" />
+              <label className="label" htmlFor="f-dept">{t.coworkers.department}</label>
+              <input id="f-dept" name="department" className="input" placeholder="" />
             </div>
             <div className="field">
-              <label className="label" htmlFor="f-position">Default position</label>
+              <label className="label" htmlFor="f-position">{t.folders.defaultPosition}</label>
               <select id="f-position" name="defaultPositionId" className="select" defaultValue="">
-                <option value="">No default</option>
+                <option value="">{t.folders.noDefault}</option>
                 {positions.map((p) => (
                   <option key={p.id} value={p.id}>{p.title}</option>
                 ))}
               </select>
-              <span className="hint">Applied to tasks that do not name their own.</span>
+              <span className="hint">{t.folders.defaultHint}</span>
             </div>
           </div>
         </div>
@@ -193,8 +188,8 @@ export function NewFolderForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">Routing policy</div>
-            <div className="card-sub">How this folder behaves when it has to make a judgement call.</div>
+            <div className="card-title">{t.folders.routingPolicy}</div>
+            <div className="card-sub">{t.folders.routingPolicySub}</div>
           </div>
         </header>
         <div className="card-pad">
@@ -206,12 +201,13 @@ export function NewFolderForm({
               tieEpsilon: 0.02,
               minimumScore: 0.5,
             }}
+            t={t}
           />
         </div>
       </section>
 
       <button type="submit" className="btn btn-primary btn-lg" disabled={pending} style={{ alignSelf: 'flex-start' }}>
-        {pending ? <><span className="spin" /> Creating…</> : 'Create the folder'}
+        {pending ? <><span className="spin" /> {t.common.creating}</> : t.folders.createFolder}
       </button>
     </form>
   );
@@ -220,9 +216,11 @@ export function NewFolderForm({
 export function FolderPolicyForm({
   folderId,
   values,
+  t,
 }: {
   folderId: string;
   values: PolicyValues;
+  t: Dictionary;
 }) {
   const [state, action, pending] = useActionState(updateFolderPolicyAction, INITIAL);
 
@@ -231,9 +229,9 @@ export function FolderPolicyForm({
       <input type="hidden" name="folderId" value={folderId} />
       {state.error && <div className="notice notice-danger" role="alert">{state.error}</div>}
       {state.ok && state.message && <div className="notice notice-ok">{state.message}</div>}
-      <PolicyFields values={values} />
+      <PolicyFields values={values} t={t} />
       <button type="submit" className="btn btn-primary" disabled={pending} style={{ alignSelf: 'flex-start' }}>
-        {pending ? <><span className="spin" /> Saving…</> : 'Save the policy'}
+        {pending ? <><span className="spin" /> {t.common.saving}</> : t.folders.savePolicy}
       </button>
     </form>
   );

@@ -26,6 +26,8 @@ import {
   type MatchTrigger,
 } from '@/lib/domain/enums';
 import { notify } from '@/lib/notifications/dispatch';
+import { getLocale } from '@/lib/i18n/server';
+import type { Locale } from '@/lib/i18n/locale';
 import { recordAudit } from './audit';
 
 function splitList(value: string): string[] {
@@ -156,13 +158,19 @@ export async function loadCandidates(taskId: string): Promise<CandidateInput[]> 
  * This backs the "who is most qualified for this?" view: a head of distribution
  * can look at the full shortlist before any work is handed out.
  */
-export async function previewMatch(taskId: string): Promise<
-  { result: MatchResult; task: TaskInput; folderName: string } | null
-> {
+export async function previewMatch(
+  taskId: string,
+  locale?: Locale,
+): Promise<{ result: MatchResult; task: TaskInput; folderName: string } | null> {
   const loaded = await loadTaskInput(taskId);
   if (!loaded) return null;
   const candidates = await loadCandidates(taskId);
-  const result = matchTask(loaded.task, candidates, { policy: loaded.policy });
+  // The engine writes its own explanations, so it needs to know which language
+  // the person reading them is using.
+  const result = matchTask(loaded.task, candidates, {
+    policy: loaded.policy,
+    locale: locale ?? (await getLocale()),
+  });
   return { result, task: loaded.task, folderName: loaded.folderName };
 }
 
@@ -192,7 +200,10 @@ export async function distributeTask(options: DistributeOptions): Promise<Distri
   if (!loaded) throw new Error('That task no longer exists.');
 
   const candidates = await loadCandidates(options.taskId);
-  const result = matchTask(loaded.task, candidates, { policy: loaded.policy });
+  const result = matchTask(loaded.task, candidates, {
+    policy: loaded.policy,
+    locale: await getLocale(),
+  });
   const durationMs = Date.now() - startedAt;
 
   const shouldAssign = result.autoAssignable && result.selected !== null && !options.previewOnly;
@@ -378,7 +389,10 @@ export async function assignManually(params: {
   const chosen = candidates.find((c) => c.coworkerId === params.coworkerId);
   if (!chosen) return { ok: false, error: 'That coworker is not in the candidate pool.' };
 
-  const result = matchTask(loaded.task, candidates, { policy: loaded.policy });
+  const result = matchTask(loaded.task, candidates, {
+    policy: loaded.policy,
+    locale: await getLocale(),
+  });
   const evaluation = result.candidates.find((c) => c.coworkerId === params.coworkerId);
 
   if (evaluation && !evaluation.eligible && !params.acknowledgeUnqualified) {

@@ -2,15 +2,21 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
-import { Badge, Card, PageHeader } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  PageHeader,
+} from '@/components/ui';
 import { FolderIcon, PlusIcon, ScaleIcon } from '@/components/icons';
-import { TIE_BREAK_LABELS, type TieBreak } from '@/lib/domain/enums';
+import type { TieBreak } from '@/lib/domain/enums';
+import { fill, getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Folders' };
 export const dynamic = 'force-dynamic';
 
 export default async function FoldersPage() {
   await requireDistributor('/folders');
+  const { t } = await getTranslations();
 
   const folders = await prisma.taskFolder.findMany({
     where: { archivedAt: null },
@@ -25,11 +31,11 @@ export default async function FoldersPage() {
   return (
     <>
       <PageHeader
-        title="Distribution folders"
-        lede="A folder is where work comes in. Its policy decides how that whole class of work is routed, so you set the rules once instead of deciding task by task."
+        title={t.folders.title}
+        lede={t.folders.lede}
         action={
           <Link href="/folders/new" className="btn btn-primary">
-            <PlusIcon size={16} /> New folder
+            <PlusIcon size={16} /> {t.folders.newFolder}
           </Link>
         }
       />
@@ -38,9 +44,9 @@ export default async function FoldersPage() {
         <Card>
           <div className="empty">
             <FolderIcon size={28} style={{ opacity: 0.4, marginBottom: 10 }} />
-            <div>No folders yet.</div>
+            <div>{t.folders.noneYet}</div>
             <Link href="/folders/new" className="btn btn-primary btn-sm" style={{ marginTop: 14 }}>
-              Create the first one
+              {t.folders.createFirst}
             </Link>
           </div>
         </Card>
@@ -63,15 +69,15 @@ export default async function FoldersPage() {
                 </div>
 
                 <p className="small muted" style={{ minHeight: 38 }}>
-                  {folder.description ?? 'No description.'}
+                  {folder.description ?? t.folders.noDescription}
                 </p>
 
                 <div className="row" style={{ gap: 7, flexWrap: 'wrap', marginTop: 12 }}>
                   <Badge tone={folder.routingMode === 'AUTO_ASSIGN' ? 'ok' : 'accent'}>
-                    {folder.routingMode === 'AUTO_ASSIGN' ? 'Auto-assign' : 'Proposes'}
+                    {folder.routingMode === 'AUTO_ASSIGN' ? t.dash.autoAssign : t.dash.proposes}
                   </Badge>
                   {folder.ambiguityPolicy === 'STRICT' && (
-                    <Badge tone="info"><ScaleIcon size={11} /> Strict on ties</Badge>
+                    <Badge tone="info"><ScaleIcon size={11} /> {t.folders.strictOnTies}</Badge>
                   )}
                   {folder.defaultPosition && <Badge>{folder.defaultPosition.title}</Badge>}
                 </div>
@@ -85,14 +91,14 @@ export default async function FoldersPage() {
                     borderTop: '1px solid var(--border)',
                   }}
                 >
-                  <Metric label="Queued" value={queued} />
-                  <Metric label="Needs you" value={needsReview} tone={needsReview > 0 ? 'warn' : undefined} />
-                  <Metric label="Blocked" value={blocked} tone={blocked > 0 ? 'danger' : undefined} />
-                  <Metric label="Total" value={folder.tasks.length} />
+                  <Metric label={t.folders.queued} value={queued} />
+                  <Metric label={t.folders.needsYou} value={needsReview} tone={needsReview > 0 ? 'warn' : undefined} />
+                  <Metric label={t.folders.blocked} value={blocked} tone={blocked > 0 ? 'danger' : undefined} />
+                  <Metric label={t.folders.total} value={folder.tasks.length} />
                 </div>
 
                 <div className="tiny subtle" style={{ marginTop: 10 }}>
-                  {folder.department} · {TIE_BREAK_LABELS[folder.tieBreak as TieBreak]?.toLowerCase()}
+                  {folder.department} · {t.tieBreak[folder.tieBreak as TieBreak]?.toLowerCase()}
                 </div>
               </Link>
             );

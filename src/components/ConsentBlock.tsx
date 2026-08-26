@@ -17,16 +17,28 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { LEGAL_DOCUMENTS } from '@/lib/content/legal';
+import { legalDocuments } from '@/lib/content/legal';
 import { ChevronDownIcon, BellIcon } from './icons';
+import type { Dictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locale';
 
-function LegalReader({ slug }: { slug: 'terms' | 'privacy' }) {
+/**
+ * One reader for both documents.
+ *
+ * The previous version put each document in its own box with its own
+ * "read"/"open" pair, which read as clutter on a sign-up form. There is one
+ * decision to make here, so there is one box — the documents are still
+ * available in full, behind a single control, with a tab to move between them.
+ */
+function LegalReader({ t, locale }: { t: Dictionary; locale: Locale }) {
   const [open, setOpen] = useState(false);
-  const doc = LEGAL_DOCUMENTS[slug];
+  const [shown, setShown] = useState<'terms' | 'privacy'>('terms');
+  const docs = legalDocuments(locale);
+  const doc = docs[shown];
 
   return (
-    <div style={{ marginTop: 6 }}>
-      <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+    <div style={{ marginTop: 8 }}>
+      <div className="row" style={{ gap: 14, flexWrap: 'wrap' }}>
         <button
           type="button"
           className="btn btn-ghost btn-sm"
@@ -34,102 +46,117 @@ function LegalReader({ slug }: { slug: 'terms' | 'privacy' }) {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
         >
-          {open ? 'Hide' : 'Read'} the {doc.title.toLowerCase()}
+          {open ? t.consentForm.hideThem : t.consentForm.readThem}
           <ChevronDownIcon
             size={12}
             style={{ transform: open ? 'rotate(180deg)' : undefined, transition: 'transform 140ms' }}
           />
         </button>
-        <Link
-          href={`/legal/${slug}`}
-          target="_blank"
-          className="tiny subtle"
-          style={{ textDecoration: 'underline' }}
-        >
-          Open in a new tab
+        <Link href="/legal/terms" target="_blank" className="tiny subtle" style={{ textDecoration: 'underline' }}>
+          {docs.terms.title}
+        </Link>
+        <Link href="/legal/privacy" target="_blank" className="tiny subtle" style={{ textDecoration: 'underline' }}>
+          {docs.privacy.title}
         </Link>
       </div>
 
       {open && (
         <div
           style={{
-            marginTop: 9,
-            maxHeight: 300,
-            overflowY: 'auto',
-            padding: '14px 16px',
+            marginTop: 10,
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-sm)',
             background: 'var(--bg-sunken)',
+            overflow: 'hidden',
           }}
         >
-          <div className="tiny subtle" style={{ marginBottom: 10 }}>
-            Version {doc.version} · last updated {doc.updated}
+          <div
+            className="row"
+            style={{ gap: 4, padding: 8, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}
+          >
+            {(['terms', 'privacy'] as const).map((slug) => (
+              <button
+                key={slug}
+                type="button"
+                className="btn btn-sm"
+                data-active={shown === slug}
+                onClick={() => setShown(slug)}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: 12.5,
+                  background: shown === slug ? 'var(--bg-raised)' : 'transparent',
+                  borderColor: shown === slug ? 'var(--border-strong)' : 'transparent',
+                }}
+              >
+                {docs[slug].title}
+              </button>
+            ))}
           </div>
-          {doc.sections.map((section) => (
-            <div key={section.heading} style={{ marginBottom: 14 }}>
-              <div style={{ fontWeight: 640, fontSize: 13, marginBottom: 4 }}>{section.heading}</div>
-              {section.paragraphs.map((text, i) => (
-                <p key={i} className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.55 }}>
-                  {text}
-                </p>
-              ))}
+
+          <div style={{ maxHeight: 280, overflowY: 'auto', padding: '14px 16px' }}>
+            <div className="tiny subtle" style={{ marginBottom: 10 }}>
+              {t.consentForm.version} {doc.version} · {t.consentForm.lastUpdated} {doc.updated}
             </div>
-          ))}
+            {doc.sections.map((section) => (
+              <div key={section.heading} style={{ marginBottom: 14 }}>
+                <div style={{ fontWeight: 640, fontSize: 13, marginBottom: 4 }}>{section.heading}</div>
+                {section.paragraphs.map((text, i) => (
+                  <p key={i} className="tiny muted" style={{ marginBottom: 6, lineHeight: 1.55 }}>
+                    {text}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-export default function ConsentBlock({ error }: { error?: boolean }) {
+export default function ConsentBlock({
+  error,
+  t,
+  locale,
+}: {
+  error?: boolean;
+  t: Dictionary;
+  locale: Locale;
+}) {
   return (
     <div className="stack" style={{ gap: 12 }}>
       <div>
         <div className="label" style={{ marginBottom: 8 }}>
-          Before you create an account
+          {t.consentForm.beforeYouCreate}
         </div>
-
-        <label className={`checkline ${error ? '' : 'checkline-required'}`} style={error ? { borderColor: 'var(--danger)' } : undefined}>
-          <input type="checkbox" name="accept_terms" required />
-          <span>
-            <span style={{ fontWeight: 580, fontSize: 13.5 }}>
-              I have read and accept the terms of service
-            </span>
-            <LegalReader slug="terms" />
-          </span>
-        </label>
 
         <label
           className={`checkline ${error ? '' : 'checkline-required'}`}
-          style={{ marginTop: 8, ...(error ? { borderColor: 'var(--danger)' } : {}) }}
+          style={error ? { borderColor: 'var(--danger)' } : undefined}
         >
-          <input type="checkbox" name="accept_privacy" required />
+          <input type="checkbox" name="accept_documents" required />
           <span>
-            <span style={{ fontWeight: 580, fontSize: 13.5 }}>
-              I have read and accept the privacy policy
-            </span>
-            <LegalReader slug="privacy" />
+            <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.consentForm.acceptBoth}</span>
+            <LegalReader t={t} locale={locale} />
           </span>
         </label>
       </div>
 
       <div>
         <div className="label" style={{ marginBottom: 4 }}>
-          Notifications — all optional
+          {t.consentForm.notificationsTitle}
         </div>
         <p className="hint" style={{ marginBottom: 8 }}>
-          Leave every box below unticked and you lose nothing. Everything still arrives in the bell
-          in the top-right corner of the app. These settings only decide whether a copy also reaches
-          your inbox or your phone, and you can change them any time.
+          {t.consentForm.notificationsBody}
         </p>
 
         <div className="stack" style={{ gap: 7 }}>
           <label className="checkline">
             <input type="checkbox" name="consent_OPERATIONAL_EMAIL" />
             <span>
-              <span style={{ fontWeight: 580, fontSize: 13.5 }}>E-mail me about my work</span>
+              <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.consentForm.emailWork}</span>
               <span className="hint" style={{ display: 'block', marginTop: 2 }}>
-                A task assigned to you, or a decision waiting on you.
+                {t.consentForm.emailWorkBody}
               </span>
             </span>
           </label>
@@ -137,9 +164,9 @@ export default function ConsentBlock({ error }: { error?: boolean }) {
           <label className="checkline">
             <input type="checkbox" name="consent_OPERATIONAL_SMS" />
             <span>
-              <span style={{ fontWeight: 580, fontSize: 13.5 }}>Text me about my work</span>
+              <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.consentForm.smsWork}</span>
               <span className="hint" style={{ display: 'block', marginTop: 2 }}>
-                The same messages, by SMS. Useful if you are not at a desk.
+                {t.consentForm.smsWorkBody}
               </span>
             </span>
           </label>
@@ -147,9 +174,9 @@ export default function ConsentBlock({ error }: { error?: boolean }) {
           <label className="checkline">
             <input type="checkbox" name="consent_MARKETING_EMAIL" />
             <span>
-              <span style={{ fontWeight: 580, fontSize: 13.5 }}>E-mail me product news</span>
+              <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.consentForm.emailNews}</span>
               <span className="hint" style={{ display: 'block', marginTop: 2 }}>
-                New features and changes to how distribution works.
+                {t.consentForm.emailNewsBody}
               </span>
             </span>
           </label>
@@ -157,9 +184,9 @@ export default function ConsentBlock({ error }: { error?: boolean }) {
           <label className="checkline">
             <input type="checkbox" name="consent_MARKETING_SMS" />
             <span>
-              <span style={{ fontWeight: 580, fontSize: 13.5 }}>Text me product news</span>
+              <span style={{ fontWeight: 580, fontSize: 13.5 }}>{t.consentForm.smsNews}</span>
               <span className="hint" style={{ display: 'block', marginTop: 2 }}>
-                Rare. Only for changes that affect how work reaches you.
+                {t.consentForm.smsNewsBody}
               </span>
             </span>
           </label>
@@ -168,8 +195,7 @@ export default function ConsentBlock({ error }: { error?: boolean }) {
         <div className="notice" style={{ marginTop: 10 }}>
           <BellIcon size={16} style={{ flex: 'none', marginTop: 1, color: 'var(--text-subtle)' }} />
           <span className="tiny muted">
-            Said no to all of it? Then the bell is where new features and everything else will be.
-            Nothing is hidden from you for declining.
+            {t.consentForm.bellFallback}
           </span>
         </div>
       </div>

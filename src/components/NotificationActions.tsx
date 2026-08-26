@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { markAllNotificationsRead } from '@/app/actions/notifications';
 import { CheckIcon } from './icons';
 
-export function MarkAllReadButton() {
+export function MarkAllReadButton({ labels }: { labels: { mark: string; marking: string } }) {
   const [pending, start] = useTransition();
   const router = useRouter();
 
@@ -21,7 +21,11 @@ export function MarkAllReadButton() {
         })
       }
     >
-      {pending ? <><span className="spin" /> Marking…</> : <><CheckIcon size={15} /> Mark all read</>}
+      {pending ? (
+        <><span className="spin" /> {labels.marking}</>
+      ) : (
+        <><CheckIcon size={15} /> {labels.mark}</>
+      )}
     </button>
   );
 }

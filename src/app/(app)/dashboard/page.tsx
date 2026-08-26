@@ -7,13 +7,16 @@ import {
   Badge,
   Card,
   PageHeader,
-  PriorityBadge,
   Stat,
-  TaskStatusBadge,
-  formatDate,
-  relativeTime,
 } from '@/components/ui';
+import {
+  LocalDate,
+  PriorityBadge,
+  RelativeTime,
+  TaskStatusBadge,
+} from '@/components/ui-labels';
 import { AlertIcon, ArrowRightIcon, PlusIcon, ShieldIcon } from '@/components/icons';
+import { fill, getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Overview' };
 export const dynamic = 'force-dynamic';
@@ -25,6 +28,7 @@ export default async function DashboardPage({
 }) {
   const user = await requireUser('/dashboard');
   const { denied } = await searchParams;
+  const { t } = await getTranslations();
 
   return (
     <>
@@ -32,17 +36,15 @@ export default async function DashboardPage({
         <div className="notice notice-warn" style={{ marginBottom: 20 }} role="alert">
           <AlertIcon size={17} style={{ flex: 'none', marginTop: 1 }} />
           <span>
-            {denied === 'admin'
-              ? 'That area is for platform administrators.'
-              : 'That area is for a head of distribution.'}
+            {denied === 'admin' ? t.dash.deniedAdmin : t.dash.deniedDistribution}
           </span>
         </div>
       )}
 
       {canDistribute(user.role) ? (
-        <DistributorDashboard name={user.fullName} />
+        <DistributorDashboard name={user.fullName} t={t} />
       ) : (
-        <CoworkerDashboard userId={user.id} name={user.fullName} coworkerId={user.coworkerId} />
+        <CoworkerDashboard userId={user.id} name={user.fullName} coworkerId={user.coworkerId} t={t} />
       )}
     </>
   );
@@ -50,7 +52,7 @@ export default async function DashboardPage({
 
 // ---------------------------------------------------------------------------
 
-async function DistributorDashboard({ name }: { name: string }) {
+async function DistributorDashboard({ name, t }: { name: string; t: Awaited<ReturnType<typeof getTranslations>>['t'] }) {
   const [
     queued,
     needsReview,
@@ -90,52 +92,52 @@ async function DistributorDashboard({ name }: { name: string }) {
   return (
     <>
       <PageHeader
-        eyebrow="Head of distribution"
-        title={`Good to see you, ${name.split(' ')[0]}`}
-        lede="Everything waiting on a person, and everything the system handled on its own."
+        eyebrow={t.dash.headEyebrow}
+        title={`${t.dash.greeting} ${name.split(' ')[0]}`}
+        lede={t.dash.headLede}
         action={
           <Link href="/tasks/new" className="btn btn-primary">
-            <PlusIcon size={16} /> New task
+            <PlusIcon size={16} /> {t.dash.newTask}
           </Link>
         }
       />
 
       <div className="grid-auto" style={{ marginBottom: 22 }}>
-        <Stat label="Waiting in folders" value={queued} hint="Queued, not yet distributed" />
+        <Stat label={t.dash.waitingInFolders} value={queued} hint={t.dash.waitingHint} />
         <Stat
-          label="Needs a decision"
+          label={t.dash.needsDecision}
           value={needsReview}
-          hint="A tie, a weak match or a folder that proposes"
+          hint={t.dash.needsHint}
           tone={needsReview > 0 ? 'warn' : undefined}
         />
         <Stat
-          label="Nobody qualified"
+          label={t.dash.nobodyQualified}
           value={blocked}
-          hint="No coworker meets the requirements"
+          hint={t.dash.nobodyHint}
           tone={blocked > 0 ? 'danger' : undefined}
         />
         <Stat
-          label="Distributed this week"
+          label={t.dash.distributedWeek}
           value={assignedThisWeek}
-          hint={`Across ${poolSize} available coworker${poolSize === 1 ? '' : 's'}`}
+          hint={fill(t.dash.acrossCoworkers, { n: poolSize })}
           tone="ok"
         />
       </div>
 
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
         <Card
-          title="Waiting on you"
-          subtitle="The system stopped rather than guess"
+          title={t.dash.waitingOnYou}
+          subtitle={t.dash.waitingOnYouSub}
           action={
             <Link href="/tasks?status=NEEDS_REVIEW" className="btn btn-sm btn-ghost">
-              All <ArrowRightIcon size={14} />
+              {t.common.all} <ArrowRightIcon size={14} />
             </Link>
           }
           padded={false}
         >
           {attention.length === 0 ? (
             <div className="empty">
-              Nothing is stuck. Every task in a folder found a qualified coworker.
+              {t.dash.nothingStuck}
             </div>
           ) : (
             <div className="table-wrap">
@@ -149,7 +151,7 @@ async function DistributorDashboard({ name }: { name: string }) {
                         </Link>
                         <div className="tiny subtle" style={{ marginTop: 2 }}>
                           <span className="mono">{task.reference}</span> · {task.folder.name}
-                          {task.dueAt && ` · due ${formatDate(task.dueAt)}`}
+                          {task.dueAt && ` · due ${<LocalDate value={task.dueAt} />}`}
                         </div>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -167,18 +169,19 @@ async function DistributorDashboard({ name }: { name: string }) {
         </Card>
 
         <Card
-          title="Folders"
-          subtitle="Where work comes in"
+          title={t.dash.foldersTitle}
+          subtitle={t.dash.foldersSub}
           action={
             <Link href="/folders" className="btn btn-sm btn-ghost">
-              All <ArrowRightIcon size={14} />
+              {t.common.all} <ArrowRightIcon size={14} />
             </Link>
           }
           padded={false}
         >
           {folders.length === 0 ? (
             <div className="empty">
-              No folders yet. <Link href="/folders/new" style={{ color: 'var(--accent)' }}>Create the first one</Link>.
+              {t.dash.noFolders}{' '}
+              <Link href="/folders/new" style={{ color: 'var(--accent)' }}>{t.dash.createFirstFolder}</Link>.
             </div>
           ) : (
             <div className="table-wrap">
@@ -191,13 +194,12 @@ async function DistributorDashboard({ name }: { name: string }) {
                           {folder.name}
                         </Link>
                         <div className="tiny subtle" style={{ marginTop: 2 }}>
-                          {folder.department} · {folder._count.tasks} task
-                          {folder._count.tasks === 1 ? '' : 's'}
+                          {folder.department} · {folder._count.tasks} {t.nav.tasks.toLowerCase()}
                         </div>
                       </td>
                       <td style={{ textAlign: 'right' }}>
                         <Badge tone={folder.routingMode === 'AUTO_ASSIGN' ? 'ok' : 'accent'}>
-                          {folder.routingMode === 'AUTO_ASSIGN' ? 'Auto-assign' : 'Proposes'}
+                          {folder.routingMode === 'AUTO_ASSIGN' ? t.dash.autoAssign : t.dash.proposes}
                         </Badge>
                       </td>
                     </tr>
@@ -211,22 +213,22 @@ async function DistributorDashboard({ name }: { name: string }) {
 
       <div style={{ marginTop: 18 }}>
         <Card
-          title="Recent distribution decisions"
-          subtitle="Every run is kept, including the ones nobody was qualified for"
+          title={t.dash.recentDecisions}
+          subtitle={t.dash.recentDecisionsSub}
           padded={false}
         >
           {recentRuns.length === 0 ? (
-            <div className="empty">No distribution has run yet.</div>
+            <div className="empty">{t.dash.noRuns}</div>
           ) : (
             <div className="table-wrap">
               <table className="data">
                 <thead>
                   <tr>
-                    <th>Task</th>
-                    <th style={{ width: 150 }}>Outcome</th>
-                    <th style={{ width: 110 }}>Considered</th>
-                    <th>Summary</th>
-                    <th style={{ width: 110 }}>When</th>
+                    <th>{t.dash.colTask}</th>
+                    <th style={{ width: 150 }}>{t.dash.colOutcome}</th>
+                    <th style={{ width: 110 }}>{t.dash.colConsidered}</th>
+                    <th>{t.dash.colSummary}</th>
+                    <th style={{ width: 110 }}>{t.dash.colWhen}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -242,10 +244,10 @@ async function DistributorDashboard({ name }: { name: string }) {
                         <OutcomeChip outcome={run.outcome} />
                       </td>
                       <td className="small muted num">
-                        {run.eligibleCount} of {run.candidateCount} qualified
+                        {fill(t.dash.qualifiedOf, { a: run.eligibleCount, b: run.candidateCount })}
                       </td>
                       <td className="small muted">{run.summary}</td>
-                      <td className="tiny subtle">{relativeTime(run.createdAt)}</td>
+                      <td className="tiny subtle">{<RelativeTime value={run.createdAt} />}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -276,23 +278,24 @@ async function CoworkerDashboard({
   userId,
   name,
   coworkerId,
+  t,
 }: {
   userId: string;
   name: string;
   coworkerId: string | null;
+  t: Awaited<ReturnType<typeof getTranslations>>['t'];
 }) {
   if (!coworkerId) {
     return (
       <>
         <PageHeader
-          title={`Welcome, ${name.split(' ')[0]}`}
-          lede="Your account exists, but you are not in the distribution pool yet."
+          title={`${t.dash.greeting} ${name.split(' ')[0]}`}
+          lede={t.dash.notInPoolTitle}
         />
         <div className="notice notice-info">
           <ShieldIcon size={18} style={{ flex: 'none', marginTop: 1 }} />
           <span>
-            A head of distribution has to create your work profile before tasks can be matched to
-            you. Once they do, your capabilities appear here and work starts arriving in the bell.
+            {t.dash.notInPoolBody}
           </span>
         </div>
       </>
@@ -335,47 +338,46 @@ async function CoworkerDashboard({
   return (
     <>
       <PageHeader
-        eyebrow={coworker?.position?.title ?? 'Coworker'}
-        title={`Good to see you, ${name.split(' ')[0]}`}
-        lede="Work matched to what you can do, and a record of where you were considered."
+        eyebrow={coworker?.position?.title ?? t.roles.COWORKER}
+        title={`${t.dash.greeting} ${name.split(' ')[0]}`}
+        lede={t.dash.coworkerLede}
         action={
           <Link href={`/coworkers/${coworkerId}`} className="btn">
-            My capabilities
+            {t.dash.myCapabilitiesBtn}
           </Link>
         }
       />
 
       <div className="grid-auto" style={{ marginBottom: 22 }}>
-        <Stat label="Open tasks" value={myTasks.length} hint="Assigned to you right now" />
+        <Stat label={t.dash.myOpenTasks} value={myTasks.length} hint={t.dash.myOpenHint} />
         <Stat
-          label="Committed hours"
+          label={t.dash.committedHours}
           value={`${Math.round(committed)}/${Math.round(capacity)}`}
-          hint="This week"
+          hint={t.dash.thisWeek}
           tone={committed >= capacity ? 'warn' : undefined}
         />
         <Stat
-          label="Capabilities"
+          label={t.dash.myCapabilities}
           value={coworker?.skills.length ?? 0}
-          hint={`${verifiedCount} verified by a lead`}
+          hint={fill(t.dash.verifiedByLead, { n: verifiedCount })}
         />
-        <Stat label="Unread in the bell" value={unread} tone={unread > 0 ? 'warn' : undefined} />
+        <Stat label={t.dash.unreadInBell} value={unread} tone={unread > 0 ? 'warn' : undefined} />
       </div>
 
-      <Card title="Your tasks" subtitle="Matched to your recorded capabilities" padded={false}>
+      <Card title={t.dash.myTasksTitle} subtitle={t.dash.myTasksSub} padded={false}>
         {myTasks.length === 0 ? (
           <div className="empty">
-            Nothing assigned to you at the moment. New work arrives in the bell in the top-right
-            corner.
+            {t.dash.nothingAssigned}
           </div>
         ) : (
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
-                  <th>Task</th>
-                  <th style={{ width: 130 }}>Status</th>
-                  <th style={{ width: 110 }}>Estimate</th>
-                  <th style={{ width: 130 }}>Due</th>
+                  <th>{t.dash.colTask}</th>
+                  <th style={{ width: 130 }}>{t.tasks.colStatus}</th>
+                  <th style={{ width: 110 }}>{t.tasks.estimatedHours}</th>
+                  <th style={{ width: 130 }}>{t.tasks.colDue}</th>
                 </tr>
               </thead>
               <tbody>
@@ -391,7 +393,7 @@ async function CoworkerDashboard({
                     </td>
                     <td><TaskStatusBadge status={task.status} /></td>
                     <td className="small muted num">{task.estimatedHours} h</td>
-                    <td className="small muted">{formatDate(task.dueAt)}</td>
+                    <td className="small muted">{<LocalDate value={task.dueAt} />}</td>
                   </tr>
                 ))}
               </tbody>
@@ -402,21 +404,21 @@ async function CoworkerDashboard({
 
       <div style={{ marginTop: 18 }}>
         <Card
-          title="Where you were considered"
-          subtitle="Distribution is not a black box — this is every recent run you appeared in"
+          title={t.dash.consideredTitle}
+          subtitle={t.dash.consideredSub}
           padded={false}
         >
           {recentlyConsidered.length === 0 ? (
-            <div className="empty">You have not been part of a distribution run yet.</div>
+            <div className="empty">{t.dash.notConsideredYet}</div>
           ) : (
             <div className="table-wrap">
               <table className="data">
                 <thead>
                   <tr>
-                    <th>Task</th>
-                    <th style={{ width: 130 }}>You were</th>
-                    <th>Reason</th>
-                    <th style={{ width: 110 }}>When</th>
+                    <th>{t.dash.colTask}</th>
+                    <th style={{ width: 130 }}>{t.dash.youWere}</th>
+                    <th>{t.dash.reason}</th>
+                    <th style={{ width: 110 }}>{t.dash.colWhen}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -433,18 +435,18 @@ async function CoworkerDashboard({
                         <td>
                           {candidate.eligible ? (
                             <Badge tone="ok" dot>
-                              Qualified{candidate.rank ? ` · #${candidate.rank}` : ''}
+                              {t.dash.qualified}{candidate.rank ? ` · #${candidate.rank}` : ''}
                             </Badge>
                           ) : (
-                            <Badge tone="neutral">Not qualified</Badge>
+                            <Badge tone="neutral">{t.dash.notQualified}</Badge>
                           )}
                         </td>
                         <td className="small muted">
                           {candidate.eligible
-                            ? `Scored ${Math.round(candidate.score * 100)}%`
+                            ? fill(t.dash.scored, { p: Math.round(candidate.score * 100) })
                             : blockers.map((b) => b.message).join(' ') || '—'}
                         </td>
-                        <td className="tiny subtle">{relativeTime(candidate.matchRun.createdAt)}</td>
+                        <td className="tiny subtle">{<RelativeTime value={candidate.matchRun.createdAt} />}</td>
                       </tr>
                     );
                   })}

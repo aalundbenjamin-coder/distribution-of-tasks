@@ -11,8 +11,9 @@
  * first problem.
  */
 
-import { ASSIGNABLE_AVAILABILITIES, AVAILABILITY_LABELS, SKILL_LEVEL_LABELS } from '@/lib/domain/enums';
+import { ASSIGNABLE_AVAILABILITIES } from '@/lib/domain/enums';
 import type { Availability } from '@/lib/domain/enums';
+import { EN_MESSAGES, type EngineMessages } from './messages';
 import type {
   Blocker,
   CandidateInput,
@@ -33,9 +34,7 @@ function skillOf(candidate: CandidateInput, skillId: string): HeldSkillInput | u
   return candidate.skills.find((s) => s.skillId === skillId);
 }
 
-function fmtDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
+
 
 /**
  * Decide whether `candidate` may receive `task` at all.
@@ -46,15 +45,19 @@ export function evaluateGate(
   task: TaskInput,
   candidate: CandidateInput,
   now: Date,
+  m: EngineMessages = EN_MESSAGES,
 ): GateResult {
   const blockers: Blocker[] = [];
   const findings: RequirementFinding[] = [];
+  const fmtDate = (d: Date) => m.formatDate(d);
 
   // 1. Employment / availability state -------------------------------------
   if (!ASSIGNABLE_AVAILABILITIES.includes(candidate.availability as Availability)) {
     blockers.push({
       code: 'NOT_AVAILABLE',
-      message: `Currently ${AVAILABILITY_LABELS[candidate.availability as Availability]?.toLowerCase() ?? candidate.availability.toLowerCase()}.`,
+      message: m.notAvailable(
+        m.availabilityLabels[candidate.availability] ?? candidate.availability,
+      ),
     });
   }
 
@@ -65,7 +68,7 @@ export function evaluateGate(
   if (candidate.availableFrom && candidate.availableFrom > windowRef) {
     blockers.push({
       code: 'OUTSIDE_AVAILABILITY_WINDOW',
-      message: `Not available until ${fmtDate(candidate.availableFrom)}.`,
+      message: m.notAvailableUntil(fmtDate(candidate.availableFrom)),
     });
   }
   if (candidate.availableUntil) {
@@ -74,8 +77,8 @@ export function evaluateGate(
       blockers.push({
         code: 'OUTSIDE_AVAILABILITY_WINDOW',
         message: task.dueAt
-          ? `Available only until ${fmtDate(candidate.availableUntil)}, task is due ${fmtDate(task.dueAt)}.`
-          : `Availability ended ${fmtDate(candidate.availableUntil)}.`,
+          ? m.availableOnlyUntil(fmtDate(candidate.availableUntil), fmtDate(task.dueAt))
+          : m.availabilityEnded(fmtDate(candidate.availableUntil)),
       });
     }
   }
@@ -84,7 +87,7 @@ export function evaluateGate(
   if (candidate.exclusionReason) {
     blockers.push({
       code: 'EXPLICITLY_EXCLUDED',
-      message: `Excluded from this task: ${candidate.exclusionReason}`,
+      message: m.excluded(candidate.exclusionReason),
     });
   }
 
@@ -92,7 +95,10 @@ export function evaluateGate(
   if (task.requiredPositionId && candidate.positionId !== task.requiredPositionId) {
     blockers.push({
       code: 'WRONG_POSITION',
-      message: `Task is restricted to ${task.requiredPositionTitle ?? 'a specific position'}; holds ${candidate.positionTitle ?? 'no position'}.`,
+      message: m.wrongPosition(
+        task.requiredPositionTitle ?? m.noPosition,
+        candidate.positionTitle ?? m.noPosition,
+      ),
     });
   }
 
@@ -104,7 +110,7 @@ export function evaluateGate(
   ) {
     blockers.push({
       code: 'WRONG_DEPARTMENT',
-      message: `Task is restricted to ${task.requiredDepartment}; works in ${candidate.department}.`,
+      message: m.wrongDepartment(task.requiredDepartment, candidate.department),
     });
   }
 
@@ -116,7 +122,7 @@ export function evaluateGate(
     if (!spoken.has(lang)) {
       blockers.push({
         code: 'MISSING_LANGUAGE',
-        message: `Does not speak ${raw.toUpperCase()}.`,
+        message: m.missingLanguage(raw.toUpperCase()),
       });
     }
   }
@@ -135,8 +141,8 @@ export function evaluateGate(
         blockers.push({
           code: isCertification ? 'CERTIFICATION_MISSING' : 'MISSING_SKILL',
           message: isCertification
-            ? `Does not hold the ${req.skillName} certification.`
-            : `Missing ${req.skillName}.`,
+            ? m.certificationMissing(req.skillName)
+            : m.missingSkill(req.skillName),
           skillId: req.skillId,
         });
       }
@@ -148,7 +154,7 @@ export function evaluateGate(
         held: held ? held.level : null,
         met: false,
         verified: false,
-        note: isCertification ? 'Certification not held' : 'Capability not registered',
+        note: isCertification ? m.findingCertificationNotHeld : m.findingSkillNotRegistered,
       });
       continue;
     }
@@ -158,7 +164,7 @@ export function evaluateGate(
       if (mandatory) {
         blockers.push({
           code: 'CERTIFICATION_EXPIRED',
-          message: `${req.skillName} certification expired ${fmtDate(held.expiresAt)}.`,
+          message: m.certificationExpired(req.skillName, fmtDate(held.expiresAt)),
           skillId: req.skillId,
         });
       }
@@ -170,7 +176,7 @@ export function evaluateGate(
         held: held.level,
         met: false,
         verified: held.verified,
-        note: `Expired ${fmtDate(held.expiresAt)}`,
+        note: m.findingExpired(fmtDate(held.expiresAt)),
       });
       continue;
     }
@@ -179,7 +185,13 @@ export function evaluateGate(
       if (mandatory) {
         blockers.push({
           code: 'SKILL_LEVEL_TOO_LOW',
-          message: `${req.skillName}: needs ${SKILL_LEVEL_LABELS[req.minLevel]} (${req.minLevel}), has ${SKILL_LEVEL_LABELS[held.level]} (${held.level}).`,
+          message: m.levelTooLow(
+            req.skillName,
+            m.levelLabels[req.minLevel] ?? String(req.minLevel),
+            req.minLevel,
+            m.levelLabels[held.level] ?? String(held.level),
+            held.level,
+          ),
           skillId: req.skillId,
         });
       }
@@ -191,7 +203,7 @@ export function evaluateGate(
         held: held.level,
         met: false,
         verified: held.verified,
-        note: `${held.level} of ${req.minLevel} required`,
+        note: m.findingBelowLevel(held.level, req.minLevel),
       });
       continue;
     }
@@ -206,9 +218,9 @@ export function evaluateGate(
       verified: held.verified,
       note: isCertification
         ? held.expiresAt
-          ? `Valid until ${fmtDate(held.expiresAt)}`
-          : 'Held'
-        : `Level ${held.level}${held.level > req.minLevel ? ` (+${held.level - req.minLevel})` : ''}${held.verified ? ', verified' : ''}`,
+          ? m.findingValidUntil(fmtDate(held.expiresAt))
+          : m.findingHeld
+        : m.findingLevel(held.level, held.level - req.minLevel, held.verified),
     });
   }
 
@@ -222,7 +234,7 @@ export function evaluateGate(
     const free = Math.max(0, candidate.weeklyCapacityHours - candidate.committedHours);
     blockers.push({
       code: 'NO_CAPACITY',
-      message: `Needs ${task.estimatedHours} h but only ${round1(free)} h of ${round1(candidate.weeklyCapacityHours)} h remain this week.`,
+      message: m.noCapacity(task.estimatedHours, round1(free), round1(candidate.weeklyCapacityHours)),
     });
   }
 

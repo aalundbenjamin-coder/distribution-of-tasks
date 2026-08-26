@@ -13,7 +13,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import RequirementBuilder, { type SkillOption } from './RequirementBuilder';
 import { createTaskAction, type CreateTaskState } from '@/app/actions/tasks';
-import { TASK_PRIORITIES, TASK_PRIORITY_LABELS } from '@/lib/domain/enums';
+import { TASK_PRIORITIES } from '@/lib/domain/enums';
+import type { Dictionary } from '@/lib/i18n/dictionary';
+import { fill } from '@/lib/i18n/locale';
 import { ArrowRightIcon, FolderIcon } from './icons';
 
 export interface FolderOption {
@@ -37,11 +39,13 @@ export default function TaskForm({
   positions,
   skills,
   defaultFolderId,
+  t,
 }: {
   folders: FolderOption[];
   positions: PositionOption[];
   skills: SkillOption[];
   defaultFolderId?: string;
+  t: Dictionary;
 }) {
   const [state, action, pending] = useActionState(createTaskAction, INITIAL);
   const [folderId, setFolderId] = useState(defaultFolderId ?? folders[0]?.id ?? '');
@@ -62,10 +66,10 @@ export default function TaskForm({
         </div>
         <div className="row" style={{ gap: 10, flexWrap: 'wrap' }}>
           <Link href={`/tasks/${state.taskId}`} className="btn btn-primary">
-            See who it went to and why <ArrowRightIcon size={15} />
+            {t.tasks.seeWhoAndWhy} <ArrowRightIcon size={15} />
           </Link>
           <button type="button" className="btn" onClick={() => router.refresh()}>
-            Create another task
+            {t.tasks.createAnother}
           </button>
         </div>
       </div>
@@ -78,9 +82,9 @@ export default function TaskForm({
         <div className="notice notice-warn">
           <FolderIcon size={18} style={{ flex: 'none', marginTop: 1 }} />
           <span>
-            There are no folders yet, and a task has to go into one.{' '}
+            {t.tasks.noFoldersYet}{' '}
             <Link href="/folders/new" style={{ textDecoration: 'underline' }}>
-              Create a folder first
+              {t.tasks.createFolderFirst}
             </Link>
             .
           </span>
@@ -100,45 +104,45 @@ export default function TaskForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">The work</div>
-            <div className="card-sub">What needs doing, and how much of it there is.</div>
+            <div className="card-title">{t.tasks.theWork}</div>
+            <div className="card-sub">{t.tasks.theWorkSub}</div>
           </div>
         </header>
         <div className="card-pad stack" style={{ gap: 15 }}>
           <div className="field">
-            <label className="label" htmlFor="t-title">Title</label>
+            <label className="label" htmlFor="t-title">{t.tasks.fieldTitle}</label>
             <input
               id="t-title"
               name="title"
               className={`input ${state.field === 'title' ? 'input-error' : ''}`}
               required
               autoFocus
-              placeholder="Replace the pump seal on line 3"
+              placeholder={t.tasks.titlePlaceholder}
             />
           </div>
 
           <div className="field">
-            <label className="label" htmlFor="t-desc">Description</label>
+            <label className="label" htmlFor="t-desc">{t.tasks.fieldDescription}</label>
             <textarea
               id="t-desc"
               name="description"
               className="textarea"
-              placeholder="Anything the person taking this needs to know — access, parts, safety, who to speak to."
+              placeholder={t.tasks.descPlaceholder}
             />
           </div>
 
           <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
             <div className="field">
-              <label className="label" htmlFor="t-priority">Priority</label>
+              <label className="label" htmlFor="t-priority">{t.tasks.priority}</label>
               <select id="t-priority" name="priority" className="select" defaultValue="NORMAL">
                 {TASK_PRIORITIES.map((p) => (
-                  <option key={p} value={p}>{TASK_PRIORITY_LABELS[p]}</option>
+                  <option key={p} value={p}>{t.priority[p]}</option>
                 ))}
               </select>
             </div>
 
             <div className="field">
-              <label className="label" htmlFor="t-hours">Estimated hours</label>
+              <label className="label" htmlFor="t-hours">{t.tasks.estimatedHours}</label>
               <input
                 id="t-hours"
                 name="estimatedHours"
@@ -150,13 +154,13 @@ export default function TaskForm({
                 className={`input ${state.field === 'estimatedHours' ? 'input-error' : ''}`}
                 required
               />
-              <span className="hint">Used to check capacity.</span>
+              <span className="hint">{t.tasks.estimatedHint}</span>
             </div>
 
             <div className="field">
-              <label className="label" htmlFor="t-due">Due date</label>
+              <label className="label" htmlFor="t-due">{t.tasks.dueDate}</label>
               <input id="t-due" name="dueAt" type="date" className="input" />
-              <span className="hint">Optional.</span>
+              <span className="hint">{t.common.optional}</span>
             </div>
           </div>
         </div>
@@ -165,13 +169,13 @@ export default function TaskForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">Where it goes</div>
-            <div className="card-sub">The folder decides how this kind of work is routed.</div>
+            <div className="card-title">{t.tasks.whereItGoes}</div>
+            <div className="card-sub">{t.tasks.whereItGoesSub}</div>
           </div>
         </header>
         <div className="card-pad stack" style={{ gap: 14 }}>
           <div className="field">
-            <label className="label" htmlFor="t-folder">Folder</label>
+            <label className="label" htmlFor="t-folder">{t.tasks.folder}</label>
             <select
               id="t-folder"
               name="folderId"
@@ -192,11 +196,9 @@ export default function TaskForm({
             <div className="notice">
               <FolderIcon size={17} style={{ flex: 'none', marginTop: 1, color: 'var(--text-subtle)' }} />
               <span className="tiny muted">
-                {folder.routingMode === 'AUTO_ASSIGN'
-                  ? 'This folder assigns automatically as soon as the task is created, provided the best candidate clears the folder’s minimum score and there is no unresolvable tie.'
-                  : 'This folder proposes a shortlist and waits for you to confirm. Nothing is assigned automatically.'}
+                {folder.routingMode === 'AUTO_ASSIGN' ? t.tasks.autoNote : t.tasks.proposeNote}
                 {folder.defaultPositionTitle &&
-                  ` Tasks here default to ${folder.defaultPositionTitle} unless you narrow it below.`}
+                  ` ${fill(t.tasks.defaultsTo, { position: folder.defaultPositionTitle })}`}
               </span>
             </div>
           )}
@@ -206,26 +208,23 @@ export default function TaskForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">What it takes</div>
-            <div className="card-sub">
-              Mandatory capabilities are the gate. Anyone missing one is removed from consideration
-              entirely — no score can override it.
-            </div>
+            <div className="card-title">{t.tasks.whatItTakes}</div>
+            <div className="card-sub">{t.tasks.whatItTakesSub}</div>
           </div>
         </header>
         <div className="card-pad">
           {skills.length === 0 ? (
             <div className="notice notice-warn">
               <span>
-                The capability catalogue is empty, so this task cannot state requirements.{' '}
+                {t.tasks.catalogueEmpty}{' '}
                 <Link href="/skills" style={{ textDecoration: 'underline' }}>
-                  Add capabilities first
+                  {t.tasks.addCapabilitiesFirst}
                 </Link>
                 .
               </span>
             </div>
           ) : (
-            <RequirementBuilder skills={skills} />
+            <RequirementBuilder skills={skills} t={t} />
           )}
         </div>
       </section>
@@ -233,15 +232,15 @@ export default function TaskForm({
       <section className="card">
         <header className="card-header">
           <div>
-            <div className="card-title">Who may be considered</div>
-            <div className="card-sub">Optional extra gates, on top of the capabilities above.</div>
+            <div className="card-title">{t.tasks.whoMayBeConsidered}</div>
+            <div className="card-sub">{t.tasks.whoSub}</div>
           </div>
         </header>
         <div className="card-pad" style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
           <div className="field">
-            <label className="label" htmlFor="t-position">Restrict to a position</label>
+            <label className="label" htmlFor="t-position">{t.tasks.restrictPosition}</label>
             <select id="t-position" name="requiredPositionId" className="select" defaultValue="">
-              <option value="">Any position</option>
+              <option value="">{t.tasks.anyPosition}</option>
               {positions.map((p) => (
                 <option key={p.id} value={p.id}>{p.title}</option>
               ))}
@@ -249,19 +248,19 @@ export default function TaskForm({
           </div>
 
           <div className="field">
-            <label className="label" htmlFor="t-dept">Restrict to a department</label>
+            <label className="label" htmlFor="t-dept">{t.tasks.restrictDepartment}</label>
             <input
               id="t-dept"
               name="requiredDepartment"
               className="input"
-              placeholder="Any department"
+              placeholder={t.tasks.anyDepartment}
             />
           </div>
 
           <div className="field">
-            <label className="label" htmlFor="t-lang">Required languages</label>
+            <label className="label" htmlFor="t-lang">{t.tasks.requiredLanguages}</label>
             <input id="t-lang" name="requiredLanguages" className="input" placeholder="da, en" />
-            <span className="hint">Comma separated. Every one listed must be spoken.</span>
+            <span className="hint">{t.tasks.languagesHint}</span>
           </div>
         </div>
       </section>
@@ -274,10 +273,14 @@ export default function TaskForm({
           className="btn btn-primary btn-lg"
           disabled={pending}
         >
-          {pending ? <><span className="spin" /> Distributing…</> : <>Send to the folder <ArrowRightIcon size={16} /></>}
+          {pending ? (
+            <><span className="spin" /> {t.tasks.distributing}</>
+          ) : (
+            <>{t.tasks.sendToFolder} <ArrowRightIcon size={16} /></>
+          )}
         </button>
         <button type="submit" name="intent" value="draft" className="btn btn-lg" disabled={pending}>
-          Save as a draft
+          {t.tasks.saveDraft}
         </button>
       </div>
     </form>

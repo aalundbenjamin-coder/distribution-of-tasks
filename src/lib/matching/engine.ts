@@ -22,6 +22,8 @@
 
 import { evaluateGate } from './eligibility';
 import { ENGINE_VERSION, describeScore, poolStats, scoreCandidate } from './scoring';
+import { EN_MESSAGES, engineMessagesFor, type EngineMessages } from './messages';
+import type { Locale } from '@/lib/i18n/locale';
 import {
   DEFAULT_POLICY,
   type CandidateInput,
@@ -117,15 +119,16 @@ function tieBreakReason(
   runnerUpEval: EvaluatedCandidate,
   policy: MatchPolicy,
   now: Date,
+  m: EngineMessages,
 ): string | undefined {
   if (quantise(winnerEval.score) !== quantise(runnerUpEval.score)) return undefined;
 
   const loadReason = (): string | undefined => {
     if (winner.openTaskCount !== runnerUp.openTaskCount) {
-      return `Same score as ${runnerUp.fullName}; chosen because they carry ${winner.openTaskCount} open task${winner.openTaskCount === 1 ? '' : 's'} against ${runnerUp.openTaskCount}.`;
+      return m.tieOpenTasks(runnerUp.fullName, winner.openTaskCount, runnerUp.openTaskCount);
     }
     if (winner.committedHours !== runnerUp.committedHours) {
-      return `Same score and task count as ${runnerUp.fullName}; chosen on the lighter committed load (${winner.committedHours} h against ${runnerUp.committedHours} h).`;
+      return m.tieCommittedHours(runnerUp.fullName, winner.committedHours, runnerUp.committedHours);
     }
     return undefined;
   };
@@ -133,13 +136,16 @@ function tieBreakReason(
   const rotationReason = (): string | undefined => {
     if ((winner.lastAssignedAt?.getTime() ?? -1) !== (runnerUp.lastAssignedAt?.getTime() ?? -1)) {
       if (!winner.lastAssignedAt) {
-        return `Same score as ${runnerUp.fullName}; chosen because they have not been assigned a task yet.`;
+        return m.tieNeverAssigned(runnerUp.fullName);
       }
       const days = Math.round((now.getTime() - winner.lastAssignedAt.getTime()) / 86_400_000);
-      return `Same score as ${runnerUp.fullName}; chosen because they have waited longer since their last task (${days} day${days === 1 ? '' : 's'}, against ${runnerUp.lastAssignedAt ? Math.round((now.getTime() - runnerUp.lastAssignedAt.getTime()) / 86_400_000) : 0}).`;
+      const theirDays = runnerUp.lastAssignedAt
+        ? Math.round((now.getTime() - runnerUp.lastAssignedAt.getTime()) / 86_400_000)
+        : 0;
+      return m.tieWaitedLonger(runnerUp.fullName, days, theirDays);
     }
     if (winner.assignmentCount !== runnerUp.assignmentCount) {
-      return `Same score as ${runnerUp.fullName}; chosen on the lower lifetime assignment count (${winner.assignmentCount} against ${runnerUp.assignmentCount}).`;
+      return m.tieLifetimeCount(runnerUp.fullName, winner.assignmentCount, runnerUp.assignmentCount);
     }
     return undefined;
   };
@@ -156,21 +162,27 @@ function tieBreakReason(
   const vw = winnerEval.requirementFindings.filter((f) => f.necessity === 'MANDATORY' && f.verified).length;
   const vr = runnerUpEval.requirementFindings.filter((f) => f.necessity === 'MANDATORY' && f.verified).length;
   if (vw !== vr) {
-    return `Same score as ${runnerUp.fullName}; chosen on more lead-verified capabilities (${vw} against ${vr}).`;
+    return m.tieVerified(runnerUp.fullName, vw, vr);
   }
 
   const lw = winnerEval.requirementFindings.reduce((s, f) => s + (f.held ?? 0), 0);
   const lr = runnerUpEval.requirementFindings.reduce((s, f) => s + (f.held ?? 0), 0);
   if (lw !== lr) {
-    return `Same score as ${runnerUp.fullName}; chosen on the higher combined capability level (${lw} against ${lr}).`;
+    return m.tieCombinedLevel(runnerUp.fullName, lw, lr);
   }
 
-  return `Indistinguishable from ${runnerUp.fullName} on every ranking rule; separated only by a stable identifier tie-break.`;
+  return m.tieIdentifier(runnerUp.fullName);
 }
 
 export interface MatchOptions {
   now?: Date;
   policy?: Partial<MatchPolicy>;
+  /**
+   * Language for the sentences the engine writes about its own decision.
+   * Defaults to English, so callers and tests that predate translation are
+   * unaffected.
+   */
+  locale?: Locale;
 }
 
 /**
@@ -187,11 +199,12 @@ export function matchTask(
 ): MatchResult {
   const now = options.now ?? new Date();
   const policy: MatchPolicy = { ...DEFAULT_POLICY, ...options.policy };
+  const m = options.locale ? engineMessagesFor(options.locale) : EN_MESSAGES;
 
   // --- 1. Hard gate --------------------------------------------------------
   const gated = candidates.map((candidate) => ({
     candidate,
-    gate: evaluateGate(task, candidate, now),
+    gate: evaluateGate(task, candidate, now, m),
   }));
 
   const eligibleInputs = gated.filter((g) => g.gate.eligible).map((g) => g.candidate);
@@ -223,6 +236,7 @@ export function matchTask(
         gate.remainingHoursAfterTask,
         stats,
         now,
+        m,
       );
       return { input: candidate, result: { ...base, score, factors } };
     },
@@ -243,6 +257,7 @@ export function matchTask(
       eligible[i + 1].result,
       policy,
       now,
+      m,
     );
     if (note) eligible[i].result.tieBreakNote = note;
   }
@@ -263,10 +278,10 @@ export function matchTask(
     ).length;
     const summary =
       candidates.length === 0
-        ? 'No coworkers were available to consider for this task.'
+        ? m.summaryNobodyToConsider
         : capacityOnly > 0
-          ? `No coworker can take this task. ${capacityOnly} qualified coworker${capacityOnly === 1 ? ' is' : 's are'} at full capacity this week; the rest do not meet the requirements.`
-          : `No coworker meets every requirement of this task. ${candidates.length} profile${candidates.length === 1 ? ' was' : 's were'} checked.`;
+          ? m.summaryAllAtCapacity(capacityOnly)
+          : m.summaryNobodyQualified(candidates.length);
     return {
       outcome: 'NO_ELIGIBLE_CANDIDATE',
       summary,
@@ -288,12 +303,16 @@ export function matchTask(
     .filter((e) => quantise(best.score) - quantise(e.result.score) <= policy.tieEpsilon)
     .map((e) => e.result);
 
-  const rationale = buildRationale(best, task, tied.length);
+  const rationale = buildRationale(best, task, tied.length, m);
 
   if (best.score < policy.minimumScore) {
     return {
       outcome: 'BELOW_MINIMUM',
-      summary: `The strongest qualified coworker, ${best.fullName}, scores ${pct(best.score)}, below this folder's ${pct(policy.minimumScore)} threshold. A head of distribution should confirm before the task goes out.`,
+      summary: m.summaryBelowMinimum(
+        best.fullName,
+        Math.round(best.score * 100),
+        Math.round(policy.minimumScore * 100),
+      ),
       candidates: orderedCandidates,
       selected: best,
       tiedCandidates: tied.length > 1 ? tied : [],
@@ -311,7 +330,7 @@ export function matchTask(
     // near-tie has no defensible winner. Ask a human rather than guess.
     return {
       outcome: 'AMBIGUOUS_TIE',
-      summary: `${tied.length} coworkers are equally qualified for this task (within ${pct(policy.tieEpsilon)} of each other). This folder is set to ask a person rather than pick one.`,
+      summary: m.summaryAmbiguous(tied.length, Math.round(policy.tieEpsilon * 100)),
       candidates: orderedCandidates,
       selected: null,
       tiedCandidates: tied,
@@ -327,7 +346,7 @@ export function matchTask(
   if (policy.routingMode === 'PROPOSE_ONLY') {
     return {
       outcome: 'PROPOSED',
-      summary: `${best.fullName} is the strongest match at ${pct(best.score)}. This folder proposes rather than assigns, so a head of distribution confirms.`,
+      summary: m.summaryProposed(best.fullName, Math.round(best.score * 100)),
       candidates: orderedCandidates,
       selected: best,
       tiedCandidates: tied.length > 1 ? tied : [],
@@ -342,7 +361,7 @@ export function matchTask(
 
   return {
     outcome: 'ASSIGNED',
-    summary: `${best.fullName} matched at ${pct(best.score)} out of ${eligible.length} qualified coworker${eligible.length === 1 ? '' : 's'}.`,
+    summary: m.summaryAssigned(best.fullName, Math.round(best.score * 100), eligible.length),
     candidates: orderedCandidates,
     selected: best,
     tiedCandidates: tied.length > 1 ? tied : [],
@@ -355,17 +374,24 @@ export function matchTask(
   };
 }
 
-function buildRationale(best: EvaluatedCandidate, task: TaskInput, tiedCount: number): string {
+function buildRationale(
+  best: EvaluatedCandidate,
+  task: TaskInput,
+  tiedCount: number,
+  m: EngineMessages,
+): string {
   const met = best.requirementFindings.filter((f) => f.met).length;
   const total = task.requirements.length;
-  const parts = [
-    `${best.fullName} scored ${pct(best.score)}`,
-    total > 0 ? `meeting ${met} of ${total} listed capabilities` : 'with no capability requirements to check',
-    describeScore(best.factors),
-  ];
-  let text = `${parts.join(', ')}.`;
+  const factors = describeScore(best.factors, m);
+  const pctScore = Math.round(best.score * 100);
+
+  let text =
+    total > 0
+      ? m.rationale(best.fullName, pctScore, met, total, factors)
+      : m.rationaleNoRequirements(best.fullName, pctScore, factors);
+
   if (best.tieBreakNote) text += ` ${best.tieBreakNote}`;
-  else if (tiedCount > 1) text += ` ${tiedCount - 1} other coworker${tiedCount - 1 === 1 ? ' was' : 's were'} within the tie band.`;
+  else if (tiedCount > 1) text += ` ${m.rationaleOthersTied(tiedCount - 1)}`;
   return text;
 }
 

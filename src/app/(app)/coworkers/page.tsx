@@ -4,15 +4,18 @@ import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
 import { OPEN_TASK_STATUSES } from '@/lib/domain/enums';
 import {
-  AvailabilityBadge,
   Avatar,
   Badge,
   Card,
   PageHeader,
   ScoreBar,
 } from '@/components/ui';
+import {
+  AvailabilityBadge,
+} from '@/components/ui-labels';
 import { ShieldIcon } from '@/components/icons';
 import { CreateCoworkerForm } from '@/components/CreateCoworkerForm';
+import { fill, getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Coworkers' };
 export const dynamic = 'force-dynamic';
@@ -24,6 +27,7 @@ export default async function CoworkersPage({
 }) {
   await requireDistributor('/coworkers');
   const { position } = await searchParams;
+  const { t } = await getTranslations();
 
   const [coworkers, positions, unprofiled] = await Promise.all([
     prisma.coworker.findMany({
@@ -50,15 +54,15 @@ export default async function CoworkersPage({
   return (
     <>
       <PageHeader
-        title="Coworkers"
-        lede="Every profile here is a specification: what this person can do, to what level, how much they can take on, and when. This is what distribution reads."
+        title={t.coworkers.title}
+        lede={t.coworkers.lede}
       />
 
       {unprofiled.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <Card
-            title={`${unprofiled.length} account${unprofiled.length === 1 ? '' : 's'} not in the pool yet`}
-            subtitle="They have signed up but cannot receive work until they have a work profile."
+            title={fill(t.coworkers.notInPool, { n: unprofiled.length })}
+            subtitle={t.coworkers.notInPoolSub}
           >
             <CreateCoworkerForm
               users={unprofiled.map((u) => ({
@@ -66,6 +70,19 @@ export default async function CoworkersPage({
                 label: `${u.fullName}${u.email ? ` · ${u.email}` : u.phone ? ` · ${u.phone}` : ''}`,
               }))}
               positions={positions.map((p) => ({ id: p.id, title: p.title }))}
+              labels={{
+                account: t.coworkers.account,
+                choose: t.coworkers.choose,
+                position: t.coworkers.position,
+                noPosition: t.coworkers.noPosition,
+                seedsBaseline: t.coworkers.seedsBaseline,
+                department: t.coworkers.department,
+                fromPosition: t.coworkers.fromPosition,
+                weeklyHours: t.coworkers.weeklyHours,
+                languages: t.coworkers.languages,
+                submit: t.coworkers.addToPool,
+                submitting: t.common.saving,
+              }}
             />
           </Card>
         </div>
@@ -73,7 +90,7 @@ export default async function CoworkersPage({
 
       <div className="row" style={{ gap: 7, flexWrap: 'wrap', marginBottom: 18 }}>
         <Link href="/coworkers" className="badge" style={!position ? activeChip : undefined}>
-          All positions
+          {t.coworkers.allPositions}
         </Link>
         {positions.map((p) => (
           <Link
@@ -89,17 +106,17 @@ export default async function CoworkersPage({
 
       <Card padded={false}>
         {coworkers.length === 0 ? (
-          <div className="empty">No coworkers match this filter.</div>
+          <div className="empty">{t.coworkers.noneMatch}</div>
         ) : (
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
-                  <th>Coworker</th>
-                  <th style={{ width: 180 }}>Position</th>
-                  <th style={{ width: 150 }}>Availability</th>
-                  <th style={{ width: 170 }}>This week</th>
-                  <th>Capabilities</th>
+                  <th>{t.tasks.colCoworker}</th>
+                  <th style={{ width: 180 }}>{t.coworkers.position}</th>
+                  <th style={{ width: 150 }}>{t.coworkers.availabilityLabel}</th>
+                  <th style={{ width: 170 }}>{t.dash.thisWeek}</th>
+                  <th>{t.coworkers.capabilitiesTitle}</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,7 +149,7 @@ export default async function CoworkersPage({
                         <ScoreBar score={Math.min(1, load)} tone={load >= 1 ? 'warn' : 'ok'} />
                         <div className="tiny subtle num" style={{ marginTop: 3 }}>
                           {Math.round(committed)}/{Math.round(coworker.weeklyCapacityHours)} h ·{' '}
-                          {open.length} task{open.length === 1 ? '' : 's'}
+                          {open.length} {t.nav.tasks.toLowerCase()}
                         </div>
                       </td>
                       <td>
@@ -145,15 +162,15 @@ export default async function CoworkersPage({
                             </Badge>
                           ))}
                           {coworker.skills.length > 4 && (
-                            <span className="tiny subtle">+{coworker.skills.length - 4} more</span>
+                            <span className="tiny subtle">+{coworker.skills.length - 4} {t.coworkers.moreSuffix}</span>
                           )}
                           {coworker.skills.length === 0 && (
-                            <span className="tiny subtle">None recorded — cannot be matched</span>
+                            <span className="tiny subtle">{t.coworkers.noneRecorded}</span>
                           )}
                         </div>
                         {verified > 0 && (
                           <div className="tiny subtle" style={{ marginTop: 4 }}>
-                            {verified} verified by a lead
+                            {fill(t.coworkers.verifiedByLeadCount, { n: verified })}
                           </div>
                         )}
                       </td>

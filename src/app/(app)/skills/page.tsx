@@ -4,13 +4,14 @@ import { requireDistributor } from '@/lib/server/permissions';
 import SkillForm from '@/components/SkillForm';
 import { Badge, Card, PageHeader } from '@/components/ui';
 import { ShieldIcon } from '@/components/icons';
-import { SKILL_LEVEL_LABELS } from '@/lib/domain/enums';
+import { getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Capabilities' };
 export const dynamic = 'force-dynamic';
 
 export default async function SkillsPage() {
   await requireDistributor('/skills');
+  const { t } = await getTranslations();
 
   const skills = await prisma.skill.findMany({
     where: { archivedAt: null },
@@ -30,8 +31,8 @@ export default async function SkillsPage() {
   return (
     <>
       <PageHeader
-        title="Capability catalogue"
-        lede="The vocabulary the whole system works in. A task can only require something that exists here, and a coworker can only claim something that exists here — which is what keeps requirements and profiles comparable."
+        title={t.skills.title}
+        lede={t.skills.lede}
       />
 
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 360px)', alignItems: 'start' }}>
@@ -39,7 +40,7 @@ export default async function SkillsPage() {
           {skills.length === 0 ? (
             <Card>
               <div className="empty">
-                Nothing in the catalogue yet. Add the first capability on the right.
+                {t.skills.empty}
               </div>
             </Card>
           ) : (
@@ -49,10 +50,10 @@ export default async function SkillsPage() {
                   <table className="data">
                     <thead>
                       <tr>
-                        <th>Capability</th>
-                        <th style={{ width: 150 }}>Kind</th>
-                        <th style={{ width: 110 }}>Held by</th>
-                        <th style={{ width: 110 }}>Asked for</th>
+                        <th>{t.skills.colCapability}</th>
+                        <th style={{ width: 150 }}>{t.skills.colKind}</th>
+                        <th style={{ width: 110 }}>{t.skills.colHeldBy}</th>
+                        <th style={{ width: 110 }}>{t.skills.colAskedFor}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -69,10 +70,10 @@ export default async function SkillsPage() {
                           <td>
                             {skill.kind === 'CERTIFICATION' ? (
                               <Badge tone="info">
-                                <ShieldIcon size={11} /> {skill.expires ? 'Expires' : 'Certification'}
+                                <ShieldIcon size={11} /> {skill.expires ? t.skills.expires : t.skillKind.CERTIFICATION}
                               </Badge>
                             ) : (
-                              <Badge>Graded 0–5</Badge>
+                              <Badge>{t.skillKind.GRADED}</Badge>
                             )}
                           </td>
                           <td className="small muted num">{skill._count.coworkerSkills}</td>
@@ -88,11 +89,11 @@ export default async function SkillsPage() {
         </div>
 
         <div className="stack" style={{ gap: 18 }}>
-          <Card title="Add a capability">
-            <SkillForm />
+          <Card title={t.skills.addCapability}>
+            <SkillForm t={t} />
           </Card>
 
-          <Card title="What the levels mean">
+          <Card title={t.skills.whatLevelsMean}>
             <dl className="stack" style={{ gap: 9, margin: 0 }}>
               {[5, 4, 3, 2, 1, 0].map((level) => (
                 <div key={level} className="row" style={{ gap: 10 }}>
@@ -113,14 +114,12 @@ export default async function SkillsPage() {
                   >
                     {level}
                   </span>
-                  <span className="small">{SKILL_LEVEL_LABELS[level]}</span>
+                  <span className="small">{t.levels[level as 0|1|2|3|4|5]}</span>
                 </div>
               ))}
             </dl>
             <p className="tiny muted" style={{ marginTop: 12 }}>
-              A task states the minimum it needs. Clearing the bar qualifies you; clearing it by more
-              raises your ranking, with diminishing returns so that an expert does not automatically
-              take every routine job.
+              {t.skills.levelsNote}
             </p>
           </Card>
         </div>

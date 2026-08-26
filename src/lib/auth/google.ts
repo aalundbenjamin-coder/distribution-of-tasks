@@ -34,14 +34,37 @@ export function isGoogleSimulationAllowed(): boolean {
   return !isGoogleConfigured() && process.env.NODE_ENV !== 'production';
 }
 
-export function appOrigin(requestUrl: string): string {
+/**
+ * The public origin of this deployment.
+ *
+ * Google matches `redirect_uri` character for character against what is
+ * registered, so this has to be the address the browser actually used. Behind a
+ * proxy — which is what a Vercel deployment is — `request.url` can carry the
+ * internal host instead, which produces a redirect_uri_mismatch that is
+ * miserable to diagnose. The forwarded headers carry the real one.
+ *
+ * APP_ORIGIN still wins when set, so a deployment on a custom domain can state
+ * its address outright.
+ */
+export function appOrigin(request: Request): string {
   const configured = process.env.APP_ORIGIN?.trim();
-  if (configured) return configured.replace(/\/$/, '');
-  return new URL(requestUrl).origin;
+  if (configured) return configured.replace(/\/+$/, '');
+
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  if (forwardedHost) {
+    const proto = request.headers.get('x-forwarded-proto') ?? 'https';
+    return `${proto}://${forwardedHost.split(',')[0]!.trim()}`;
+  }
+
+  return new URL(request.url).origin;
 }
 
-export function redirectUri(requestUrl: string): string {
-  return `${appOrigin(requestUrl)}/api/auth/google/callback`;
+/**
+ * Must be byte-identical in the authorisation request and the token exchange,
+ * which is why both go through this one function.
+ */
+export function redirectUri(request: Request): string {
+  return `${appOrigin(request)}/api/auth/google/callback`;
 }
 
 export interface PkcePair {
@@ -56,7 +79,7 @@ export function createPkcePair(): PkcePair {
 }
 
 export function buildAuthorizationUrl(params: {
-  requestUrl: string;
+  request: Request;
   state: string;
   codeChallenge: string;
 }): string {
@@ -64,7 +87,7 @@ export function buildAuthorizationUrl(params: {
   if (!clientId) throw new Error('Google sign-in is not configured.');
   const url = new URL(AUTH_ENDPOINT);
   url.searchParams.set('client_id', clientId);
-  url.searchParams.set('redirect_uri', redirectUri(params.requestUrl));
+  url.searchParams.set('redirect_uri', redirectUri(params.request));
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', 'openid email profile');
   url.searchParams.set('state', params.state);
@@ -86,7 +109,7 @@ export interface GoogleProfile {
 export async function exchangeCodeForProfile(params: {
   code: string;
   codeVerifier: string;
-  requestUrl: string;
+  request: Request;
 }): Promise<GoogleProfile> {
   const clientId = googleClientId();
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
@@ -99,14 +122,17 @@ export async function exchangeCodeForProfile(params: {
       code: params.code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: redirectUri(params.requestUrl),
+      redirect_uri: redirectUri(params.request),
       grant_type: 'authorization_code',
       code_verifier: params.codeVerifier,
     }),
   });
 
   if (!tokenResponse.ok) {
-    throw new Error(`Google rejected the authorisation code (${tokenResponse.status}).`);
+    const detail = await tokenResponse.text().catch(() => '');
+    throw new Error(
+      `Google rejected the authorisation code (${tokenResponse.status}). ${detail.slice(0, 300)}`,
+    );
   }
 
   const tokens = (await tokenResponse.json()) as { access_token?: string };

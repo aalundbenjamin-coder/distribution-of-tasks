@@ -4,8 +4,18 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
 import { FolderPolicyForm } from '@/components/FolderForm';
-import { Card, PageHeader, PriorityBadge, Stat, TaskStatusBadge, formatDate } from '@/components/ui';
+import {
+  Card,
+  PageHeader,
+  Stat,
+} from '@/components/ui';
+import {
+  LocalDate,
+  PriorityBadge,
+  TaskStatusBadge,
+} from '@/components/ui-labels';
 import { PlusIcon } from '@/components/icons';
+import { getTranslations } from '@/lib/i18n';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +32,7 @@ export async function generateMetadata({
 export default async function FolderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await requireDistributor(`/folders/${id}`);
+  const { t } = await getTranslations();
 
   const folder = await prisma.taskFolder.findUnique({
     where: { id },
@@ -51,30 +62,30 @@ export default async function FolderPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <PageHeader
-        eyebrow="Distribution folder"
+        eyebrow={t.folders.title}
         title={folder.name}
         lede={folder.description ?? undefined}
         action={
           <Link href={`/tasks/new?folder=${folder.id}`} className="btn btn-primary">
-            <PlusIcon size={16} /> Send a task here
+            <PlusIcon size={16} /> {t.folders.sendTaskHere}
           </Link>
         }
       />
 
       <div className="grid-auto" style={{ marginBottom: 20 }}>
-        <Stat label="Queued" value={queued} />
-        <Stat label="Needs a decision" value={review} tone={review > 0 ? 'warn' : undefined} />
-        <Stat label="Nobody qualified" value={blocked} tone={blocked > 0 ? 'danger' : undefined} />
-        <Stat label="Being worked on" value={assigned} tone="ok" />
+        <Stat label={t.folders.queued} value={queued} />
+        <Stat label={t.dash.needsDecision} value={review} tone={review > 0 ? 'warn' : undefined} />
+        <Stat label={t.dash.nobodyQualified} value={blocked} tone={blocked > 0 ? 'danger' : undefined} />
+        <Stat label={t.folders.beingWorkedOn} value={assigned} tone="ok" />
       </div>
 
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 360px)', alignItems: 'start' }}>
-        <Card title="Tasks in this folder" padded={false}>
+        <Card title={t.folders.tasksInFolder} padded={false}>
           {folder.tasks.length === 0 ? (
             <div className="empty">
-              Nothing here yet.{' '}
+              {t.folders.nothingHere}{' '}
               <Link href={`/tasks/new?folder=${folder.id}`} style={{ color: 'var(--accent)' }}>
-                Send the first task
+                {t.folders.sendFirstTask}
               </Link>
               .
             </div>
@@ -83,10 +94,10 @@ export default async function FolderPage({ params }: { params: Promise<{ id: str
               <table className="data">
                 <thead>
                   <tr>
-                    <th>Task</th>
-                    <th style={{ width: 170 }}>Status</th>
-                    <th style={{ width: 170 }}>Assigned to</th>
-                    <th style={{ width: 110 }}>Due</th>
+                    <th>{t.dash.colTask}</th>
+                    <th style={{ width: 170 }}>{t.tasks.colStatus}</th>
+                    <th style={{ width: 170 }}>{t.tasks.colAssignedTo}</th>
+                    <th style={{ width: 110 }}>{t.tasks.colDue}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -99,14 +110,14 @@ export default async function FolderPage({ params }: { params: Promise<{ id: str
                         <div className="tiny subtle row" style={{ gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
                           <span className="mono">{task.reference}</span>
                           <PriorityBadge priority={task.priority} />
-                          <span>{task.estimatedHours} h</span>
+                          <span>{task.estimatedHours} {t.common.hours}</span>
                         </div>
                       </td>
                       <td><TaskStatusBadge status={task.status} /></td>
                       <td className="small">
                         {task.assignments[0]?.coworker.user.fullName ?? <span className="subtle">—</span>}
                       </td>
-                      <td className="small muted">{formatDate(task.dueAt)}</td>
+                      <td className="small muted">{<LocalDate value={task.dueAt} />}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -117,8 +128,8 @@ export default async function FolderPage({ params }: { params: Promise<{ id: str
 
         <div className="stack" style={{ gap: 18 }}>
           <Card
-            title="Routing policy"
-            subtitle="Changes apply to the next distribution, not to work already handed out."
+            title={t.folders.routingPolicy}
+            subtitle={t.folders.policyChangeNote}
           >
             <FolderPolicyForm
               folderId={folder.id}
@@ -129,28 +140,29 @@ export default async function FolderPage({ params }: { params: Promise<{ id: str
                 tieEpsilon: folder.tieEpsilon,
                 minimumScore: folder.minimumScore,
               }}
+              t={t}
             />
           </Card>
 
-          <Card title="About this folder">
+          <Card title={t.folders.aboutFolder}>
             <dl className="stack" style={{ gap: 11, margin: 0 }}>
               <div>
-                <dt className="eyebrow">Department</dt>
+                <dt className="eyebrow">{t.coworkers.department}</dt>
                 <dd className="small" style={{ margin: '2px 0 0' }}>{folder.department}</dd>
               </div>
               <div>
-                <dt className="eyebrow">Owner</dt>
+                <dt className="eyebrow">{t.folders.owner}</dt>
                 <dd className="small" style={{ margin: '2px 0 0' }}>{folder.owner.fullName}</dd>
               </div>
               <div>
-                <dt className="eyebrow">Default position</dt>
+                <dt className="eyebrow">{t.folders.defaultPosition}</dt>
                 <dd className="small" style={{ margin: '2px 0 0' }}>
                   {folder.defaultPosition ? (
                     <Link href={`/positions`} style={{ color: 'var(--accent)' }}>
                       {folder.defaultPosition.title}
                     </Link>
                   ) : (
-                    <span className="subtle">None</span>
+                    <span className="subtle">{t.common.none}</span>
                   )}
                 </dd>
               </div>

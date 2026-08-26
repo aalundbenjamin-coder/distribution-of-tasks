@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import TopBar, { type NavItem } from '@/components/TopBar';
 import { getCurrentUser } from '@/lib/auth/session';
 import { prisma } from '@/lib/db';
-import { USER_ROLE_LABELS } from '@/lib/domain/enums';
+import { getTranslations } from '@/lib/i18n';
 import { canDistribute, canManageAccounts } from '@/lib/server/permissions';
 
 /**
@@ -16,21 +16,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await getCurrentUser();
   if (!user) redirect('/login');
 
-  const navItems: NavItem[] = [{ href: '/dashboard', label: 'Overview' }];
+  const { locale, t } = await getTranslations();
+
+  const navItems: NavItem[] = [{ href: '/dashboard', label: t.nav.overview }];
 
   if (canDistribute(user.role)) {
     navItems.push(
-      { href: '/folders', label: 'Folders' },
-      { href: '/tasks', label: 'Tasks' },
-      { href: '/coworkers', label: 'Coworkers' },
-      { href: '/positions', label: 'Positions' },
-      { href: '/skills', label: 'Capabilities' },
+      { href: '/folders', label: t.nav.folders },
+      { href: '/tasks', label: t.nav.tasks },
+      { href: '/coworkers', label: t.nav.coworkers },
+      { href: '/positions', label: t.nav.positions },
+      { href: '/skills', label: t.nav.capabilities },
     );
   } else {
-    navItems.push({ href: '/tasks', label: 'My tasks' }, { href: '/coworkers/me', label: 'My profile' });
+    navItems.push(
+      { href: '/tasks', label: t.nav.myTasks },
+      { href: '/coworkers/me', label: t.nav.myProfile },
+    );
   }
 
-  if (canManageAccounts(user.role)) navItems.push({ href: '/audit', label: 'Audit' });
+  if (canManageAccounts(user.role)) navItems.push({ href: '/audit', label: t.nav.audit });
 
   const [notifications, unread] = await Promise.all([
     prisma.notification.findMany({
@@ -46,12 +51,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <TopBar
         navItems={navItems}
         unread={unread}
+        locale={locale}
+        labels={{
+          settings: t.nav.settings,
+          allNotifications: t.nav.allNotifications,
+          signOut: t.common.signOut,
+          appName: t.meta.appName,
+        }}
         user={{
           fullName: user.fullName,
           avatarColor: user.avatarColor,
           email: user.email,
           phone: user.phone,
-          roleLabel: USER_ROLE_LABELS[user.role],
+          roleLabel: t.roles[user.role],
         }}
         notifications={notifications.map((n) => ({
           id: n.id,

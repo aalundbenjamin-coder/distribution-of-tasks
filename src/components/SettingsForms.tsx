@@ -19,6 +19,7 @@ import {
 } from '@/app/actions/settings';
 import type { ActionState } from '@/app/actions/catalogue';
 import { BellIcon, MailIcon, PhoneIcon, SparkIcon } from './icons';
+import type { Dictionary } from '@/lib/i18n/dictionary';
 
 const INITIAL: ActionState = { ok: false };
 const INITIAL_PHONE: PhoneLinkState = { ok: false };
@@ -29,6 +30,7 @@ export function ConsentForm({
   hasPhone,
   emailVerified,
   phoneVerified,
+  t,
 }: {
   values: {
     OPERATIONAL_EMAIL: boolean;
@@ -40,6 +42,7 @@ export function ConsentForm({
   hasPhone: boolean;
   emailVerified: boolean;
   phoneVerified: boolean;
+  t: Dictionary;
 }) {
   const [state, action, pending] = useActionState(updateNotificationConsentAction, INITIAL);
 
@@ -51,42 +54,40 @@ export function ConsentForm({
       <div className="notice">
         <BellIcon size={17} style={{ flex: 'none', marginTop: 1, color: 'var(--text-subtle)' }} />
         <span className="tiny muted">
-          These switches only decide where a copy goes. Every notification reaches you in the bell
-          regardless — including product news, so turning everything off never means being kept in
-          the dark.
+          {t.settings.bellNote}
         </span>
       </div>
 
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="label" style={{ marginBottom: 8 }}>
           <MailIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          About your work
+          {t.settings.aboutYourWork}
         </legend>
         <div className="stack" style={{ gap: 7 }}>
           <ConsentSwitch
             name="consent_OPERATIONAL_EMAIL"
             checked={values.OPERATIONAL_EMAIL}
             disabled={!hasEmail}
-            title="E-mail me when work lands on my desk"
+            title={t.settings.emailWhenWork}
             description={
               !hasEmail
-                ? 'No e-mail address on this account.'
+                ? t.settings.noEmailOnAccount
                 : !emailVerified
-                  ? 'Your e-mail address is not verified yet, so nothing will be sent until it is.'
-                  : 'A task assigned to you, or a decision waiting on you.'
+                  ? t.settings.emailUnverified
+                  : t.settings.workDescription
             }
           />
           <ConsentSwitch
             name="consent_OPERATIONAL_SMS"
             checked={values.OPERATIONAL_SMS}
             disabled={!hasPhone}
-            title="Text me when work lands on my desk"
+            title={t.settings.smsWhenWork}
             description={
               !hasPhone
-                ? 'No phone number on this account — add one below.'
+                ? t.settings.noPhoneOnAccount
                 : !phoneVerified
-                  ? 'Your number is not verified yet, so nothing will be sent until it is.'
-                  : 'The same messages, by SMS.'
+                  ? t.settings.phoneUnverified
+                  : t.settings.sameBySms
             }
           />
         </div>
@@ -95,28 +96,28 @@ export function ConsentForm({
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="label" style={{ marginBottom: 8 }}>
           <SparkIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Product news
+          {t.settings.productNewsGroup}
         </legend>
         <div className="stack" style={{ gap: 7 }}>
           <ConsentSwitch
             name="consent_MARKETING_EMAIL"
             checked={values.MARKETING_EMAIL}
             disabled={!hasEmail}
-            title="E-mail me about new features"
-            description="Changes to how distribution works, and what is new."
+            title={t.settings.emailFeatures}
+            description={t.settings.featuresDescription}
           />
           <ConsentSwitch
             name="consent_MARKETING_SMS"
             checked={values.MARKETING_SMS}
             disabled={!hasPhone}
-            title="Text me about new features"
-            description="Rare, and only for changes that affect how work reaches you."
+            title={t.settings.smsFeatures}
+            description={t.settings.featuresSmsDescription}
           />
         </div>
       </fieldset>
 
       <button type="submit" className="btn btn-primary" disabled={pending} style={{ alignSelf: 'flex-start' }}>
-        {pending ? <><span className="spin" /> Saving…</> : 'Save my choices'}
+        {pending ? <><span className="spin" /> {t.common.saving}</> : t.settings.saveChoices}
       </button>
     </form>
   );
@@ -146,7 +147,7 @@ function ConsentSwitch({
   );
 }
 
-export function ReacceptTermsForm() {
+export function ReacceptTermsForm({ labels }: { labels: { accept: string; recording: string } }) {
   const [state, action, pending] = useActionState(
     async () => reacceptTermsAction(),
     INITIAL,
@@ -158,13 +159,20 @@ export function ReacceptTermsForm() {
         <div className="notice notice-ok" style={{ marginBottom: 12 }}>{state.message}</div>
       )}
       <button type="submit" className="btn btn-primary btn-sm" disabled={pending}>
-        {pending ? <><span className="spin" /> Recording…</> : 'I accept the current versions'}
+        {pending ? <><span className="spin" /> {labels.recording}</> : labels.accept}
       </button>
     </form>
   );
 }
 
-export function PhoneLinkForm() {
+export function PhoneLinkForm({
+  labels,
+}: {
+  labels: {
+    phoneNumber: string; hint: string; send: string; sending: string;
+    code: string; verify: string; checking: string; devMode: string; devBody: string;
+  };
+}) {
   const [startState, startAction, starting] = useActionState(startPhoneLinkAction, INITIAL_PHONE);
   const [confirmState, confirmAction, confirming] = useActionState(confirmPhoneLinkAction, INITIAL_PHONE);
   const [phone, setPhone] = useState('');
@@ -181,14 +189,14 @@ export function PhoneLinkForm() {
         {startState.devCode && (
           <div className="notice notice-warn">
             <span>
-              <strong>Development mode.</strong> Nothing was sent. Your code is{' '}
+              <strong>{labels.devMode}</strong> {labels.devBody}{' '}
               <span className="mono" style={{ fontWeight: 700 }}>{startState.devCode}</span>.
             </span>
           </div>
         )}
         {confirmState.error && <div className="notice notice-danger" role="alert">{confirmState.error}</div>}
         <div className="field">
-          <label className="label" htmlFor="link-otp">Six-digit code</label>
+          <label className="label" htmlFor="link-otp">{labels.code}</label>
           <input
             id="link-otp"
             name="code"
@@ -202,7 +210,7 @@ export function PhoneLinkForm() {
           />
         </div>
         <button type="submit" className="btn btn-primary" disabled={confirming}>
-          {confirming ? <><span className="spin" /> Checking…</> : 'Verify this number'}
+          {confirming ? <><span className="spin" /> {labels.checking}</> : labels.verify}
         </button>
       </form>
     );
@@ -214,7 +222,7 @@ export function PhoneLinkForm() {
       <div className="field">
         <label className="label" htmlFor="link-phone">
           <PhoneIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Phone number
+          {labels.phoneNumber}
         </label>
         <input
           id="link-phone"
@@ -227,11 +235,11 @@ export function PhoneLinkForm() {
           placeholder="+45 20 12 34 56"
         />
         <span className="hint">
-          Verifying a number lets you sign in with it, and makes SMS notifications possible.
+          {labels.hint}
         </span>
       </div>
       <button type="submit" className="btn" disabled={starting}>
-        {starting ? <><span className="spin" /> Sending…</> : 'Send a verification code'}
+        {starting ? <><span className="spin" /> {labels.sending}</> : labels.send}
       </button>
     </form>
   );

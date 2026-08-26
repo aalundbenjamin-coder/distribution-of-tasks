@@ -4,6 +4,7 @@ import SignUpForm from '@/components/SignUpForm';
 import { getCurrentUser } from '@/lib/auth/session';
 import { isGoogleConfigured } from '@/lib/auth/google';
 import { ShieldIcon } from '@/components/icons';
+import { getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Create an account' };
 
@@ -14,6 +15,7 @@ export default async function SignUpPage({
 }) {
   if (await getCurrentUser()) redirect('/dashboard');
   const params = await searchParams;
+  const { locale, t } = await getTranslations();
 
   const method =
     params.method === 'google' ? 'google' : params.method === 'phone' ? 'phone' : 'email';
@@ -22,10 +24,9 @@ export default async function SignUpPage({
   return (
     <div className="shell-narrow" style={{ maxWidth: 560 }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 className="page-title">Create your account</h1>
+        <h1 className="page-title">{t.auth.createTitle}</h1>
         <p className="page-lede">
-          One account, three ways in. Whichever you pick, you decide separately what we may send you
-          and where.
+          {t.auth.createLede}
         </p>
       </div>
 
@@ -35,15 +36,15 @@ export default async function SignUpPage({
           initialError={params.error}
           next={next}
           googleConfigured={isGoogleConfigured()}
+          t={t}
+          locale={locale}
         />
       </div>
 
       <div className="notice" style={{ marginTop: 16 }}>
         <ShieldIcon size={17} style={{ flex: 'none', marginTop: 1, color: 'var(--text-subtle)' }} />
         <span className="tiny muted">
-          Passwords are stored as salted scrypt hashes and one-time codes only as digests — neither
-          can be read back, by us or by anyone who obtains the database. Every consent decision is
-          recorded with the version of the document you were shown.
+          {t.auth.securityNote}
         </span>
       </div>
     </div>

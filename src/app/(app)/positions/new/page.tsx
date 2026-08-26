@@ -3,12 +3,14 @@ import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
 import PositionForm from '@/components/PositionForm';
 import { PageHeader } from '@/components/ui';
+import { getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'New position' };
 export const dynamic = 'force-dynamic';
 
 export default async function NewPositionPage() {
   await requireDistributor('/positions/new');
+  const { t } = await getTranslations();
   const skills = await prisma.skill.findMany({
     where: { archivedAt: null },
     orderBy: { name: 'asc' },
@@ -17,12 +19,13 @@ export default async function NewPositionPage() {
   return (
     <div className="shell-narrow" style={{ padding: 0, maxWidth: 860 }}>
       <PageHeader
-        eyebrow="Positions"
-        title="Create a position"
-        lede="Describe the role once and the capability baseline comes with it everywhere the position is used."
+        eyebrow={t.nav.positions}
+        title={t.positions.createTitle}
+        lede={t.positions.createLede}
       />
       <PositionForm
         skills={skills.map((s) => ({ id: s.id, name: s.name, category: s.category, kind: s.kind }))}
+        t={t}
       />
     </div>
   );

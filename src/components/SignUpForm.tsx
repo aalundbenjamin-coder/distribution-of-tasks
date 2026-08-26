@@ -19,6 +19,8 @@ import {
   verifyPhoneCodeAction,
   type FormState,
 } from '@/app/actions/auth';
+import type { Dictionary } from '@/lib/i18n/dictionary';
+import type { Locale } from '@/lib/i18n/locale';
 
 type Method = 'email' | 'google' | 'phone';
 
@@ -44,44 +46,48 @@ export default function SignUpForm({
   initialError,
   next,
   googleConfigured,
+  t,
+  locale,
 }: {
   initialMethod?: Method;
   initialError?: string;
   next: string;
   googleConfigured: boolean;
+  t: Dictionary;
+  locale: Locale;
 }) {
   const [method, setMethod] = useState<Method>(initialMethod);
 
   return (
     <div className="stack" style={{ gap: 18 }}>
-      <div className="segmented" role="tablist" aria-label="How to sign up">
+      <div className="segmented" role="tablist" >
         <button type="button" role="tab" aria-selected={method === 'email'} data-active={method === 'email'} onClick={() => setMethod('email')}>
           <MailIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          E-mail
+          {t.auth.methodEmail}
         </button>
         <button type="button" role="tab" aria-selected={method === 'google'} data-active={method === 'google'} onClick={() => setMethod('google')}>
           <GoogleIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Google
+          {t.auth.methodGoogle}
         </button>
         <button type="button" role="tab" aria-selected={method === 'phone'} data-active={method === 'phone'} onClick={() => setMethod('phone')}>
           <PhoneIcon size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-          Phone
+          {t.auth.methodPhone}
         </button>
       </div>
 
       {initialError === 'consent' && (
         <div className="notice notice-danger" role="alert">
-          You must accept the terms of service and the privacy policy before an account can be
-          created.
+          {t.auth.consentRequired}
         </div>
       )}
 
-      {method === 'email' && <EmailSignUp next={next} />}
-      {method === 'google' && <GoogleSignUp next={next} configured={googleConfigured} />}
-      {method === 'phone' && <PhoneSignUp next={next} />}
+      {method === 'email' && <EmailSignUp next={next} t={t} locale={locale} />}
+      {method === 'google' && <GoogleSignUp next={next} configured={googleConfigured} t={t} locale={locale} />}
+      {method === 'phone' && <PhoneSignUp next={next} t={t} locale={locale} />}
 
       <p className="small muted" style={{ textAlign: 'center' }}>
-        Already have an account? <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 560 }}>Sign in</Link>
+        {t.auth.alreadyHave}{' '}
+        <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 560 }}>{t.auth.signInTitle}</Link>
       </p>
     </div>
   );
@@ -89,7 +95,7 @@ export default function SignUpForm({
 
 // ---------------------------------------------------------------------------
 
-function EmailSignUp({ next }: { next: string }) {
+function EmailSignUp({ next, t, locale }: { next: string; t: Dictionary; locale: Locale }) {
   const [state, action, pending] = useActionState(signUpEmailAction, INITIAL);
 
   return (
@@ -98,7 +104,7 @@ function EmailSignUp({ next }: { next: string }) {
       <GeneralError state={state} />
 
       <div className="field">
-        <label className="label" htmlFor="su-name">Full name</label>
+        <label className="label" htmlFor="su-name">{t.auth.fullName}</label>
         <input
           id="su-name"
           name="fullName"
@@ -111,7 +117,7 @@ function EmailSignUp({ next }: { next: string }) {
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="su-email">Work e-mail</label>
+        <label className="label" htmlFor="su-email">{t.auth.workEmail}</label>
         <input
           id="su-email"
           name="email"
@@ -126,7 +132,7 @@ function EmailSignUp({ next }: { next: string }) {
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="su-password">Password</label>
+        <label className="label" htmlFor="su-password">{t.auth.password}</label>
         <input
           id="su-password"
           name="password"
@@ -135,18 +141,18 @@ function EmailSignUp({ next }: { next: string }) {
           autoComplete="new-password"
           required
           minLength={10}
-          placeholder="At least 10 characters"
+          placeholder={t.auth.passwordPlaceholder}
         />
         <span className="hint">
-          Length beats complexity. Three unrelated words is a good password.
+          {t.auth.passwordHint}
         </span>
         <FieldError state={state} field="password" />
       </div>
 
-      <ConsentBlock error={state.field === 'consent'} />
+      <ConsentBlock error={state.field === 'consent'} t={t} locale={locale} />
 
       <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={pending}>
-        {pending ? <><span className="spin" /> Creating your account…</> : 'Create account'}
+        {pending ? <><span className="spin" /> {t.auth.creatingAccount}</> : t.auth.createAccount}
       </button>
     </form>
   );
@@ -154,7 +160,7 @@ function EmailSignUp({ next }: { next: string }) {
 
 // ---------------------------------------------------------------------------
 
-function GoogleSignUp({ next, configured }: { next: string; configured: boolean }) {
+function GoogleSignUp({ next, configured, t, locale }: { next: string; configured: boolean; t: Dictionary; locale: Locale }) {
   return (
     <form action="/api/auth/google/start" method="post" className="stack" style={{ gap: 15 }}>
       <input type="hidden" name="next" value={next} />
@@ -163,24 +169,20 @@ function GoogleSignUp({ next, configured }: { next: string; configured: boolean 
       {!configured && (
         <div className="notice notice-info">
           <span>
-            <strong>No Google credentials configured on this deployment.</strong> The button below
-            opens a local stand-in so the whole journey — consent, account creation, the bell — can
-            be walked through. Set <span className="mono">GOOGLE_CLIENT_ID</span> and{' '}
-            <span className="mono">GOOGLE_CLIENT_SECRET</span> to use the real thing.
+            <strong>{t.auth.googleUnconfigured}</strong> {t.auth.googleUnconfiguredBody}
           </span>
         </div>
       )}
 
       <p className="small muted">
-        We ask Google only for your name, your e-mail address and whether it is verified. Your
-        Google password never reaches this service.
+        {t.auth.googleScopeNote}
       </p>
 
-      <ConsentBlock />
+      <ConsentBlock t={t} locale={locale} />
 
       <button type="submit" className="btn btn-lg btn-block">
         <GoogleIcon size={17} />
-        Continue with Google
+        {t.auth.continueWithGoogle}
       </button>
     </form>
   );
@@ -188,7 +190,7 @@ function GoogleSignUp({ next, configured }: { next: string; configured: boolean 
 
 // ---------------------------------------------------------------------------
 
-function PhoneSignUp({ next }: { next: string }) {
+function PhoneSignUp({ next, t, locale }: { next: string; t: Dictionary; locale: Locale }) {
   const [requestState, requestAction, requesting] = useActionState(requestPhoneCodeAction, INITIAL);
   const [verifyState, verifyAction, verifying] = useActionState(verifyPhoneCodeAction, INITIAL);
   const [phone, setPhone] = useState('');
@@ -204,8 +206,7 @@ function PhoneSignUp({ next }: { next: string }) {
     const data = new FormData(form);
     const snapshot: Record<string, string> = {};
     for (const key of [
-      'accept_terms',
-      'accept_privacy',
+      'accept_documents',
       'consent_OPERATIONAL_EMAIL',
       'consent_OPERATIONAL_SMS',
       'consent_MARKETING_EMAIL',
@@ -231,8 +232,8 @@ function PhoneSignUp({ next }: { next: string }) {
         {requestState.devCode && (
           <div className="notice notice-warn">
             <span>
-              <strong>Development mode.</strong> No SMS provider is configured, so nothing was
-              actually sent. Your code is <span className="mono" style={{ fontWeight: 700 }}>{requestState.devCode}</span>.
+              <strong>{t.auth.devMode}</strong> {t.auth.devModeBody}{' '}
+              <span className="mono" style={{ fontWeight: 700 }}>{requestState.devCode}</span>.
             </span>
           </div>
         )}
@@ -240,7 +241,7 @@ function PhoneSignUp({ next }: { next: string }) {
         <GeneralError state={verifyState} />
 
         <div className="field">
-          <label className="label" htmlFor="otp">Six-digit code</label>
+          <label className="label" htmlFor="otp">{t.auth.codeLabel}</label>
           <input
             id="otp"
             name="code"
@@ -254,11 +255,11 @@ function PhoneSignUp({ next }: { next: string }) {
             placeholder="000000"
           />
           <FieldError state={verifyState} field="code" />
-          <span className="hint">The code expires ten minutes after it was sent.</span>
+          <span className="hint">{t.auth.codeHint}</span>
         </div>
 
         <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={verifying}>
-          {verifying ? <><span className="spin" /> Checking…</> : 'Confirm and create account'}
+          {verifying ? <><span className="spin" /> {t.common.checking}</> : t.auth.confirmCreate}
         </button>
 
         <button
@@ -266,7 +267,7 @@ function PhoneSignUp({ next }: { next: string }) {
           className="btn btn-ghost btn-sm"
           onClick={() => window.location.reload()}
         >
-          Use a different number
+          {t.auth.useDifferentNumber}
         </button>
       </form>
     );
@@ -284,7 +285,7 @@ function PhoneSignUp({ next }: { next: string }) {
       <GeneralError state={requestState} />
 
       <div className="field">
-        <label className="label" htmlFor="ph-name">Full name</label>
+        <label className="label" htmlFor="ph-name">{t.auth.fullName}</label>
         <input
           id="ph-name"
           name="fullName"
@@ -299,7 +300,7 @@ function PhoneSignUp({ next }: { next: string }) {
       </div>
 
       <div className="field">
-        <label className="label" htmlFor="ph-phone">Mobile number</label>
+        <label className="label" htmlFor="ph-phone">{t.auth.mobile}</label>
         <input
           id="ph-phone"
           name="phone"
@@ -313,15 +314,15 @@ function PhoneSignUp({ next }: { next: string }) {
           placeholder="+45 20 12 34 56"
         />
         <span className="hint">
-          A local number is fine — it is turned into international format for you.
+          {t.auth.mobileHint}
         </span>
         <FieldError state={requestState} field="phone" />
       </div>
 
-      <ConsentBlock error={requestState.field === 'consent'} />
+      <ConsentBlock error={requestState.field === 'consent'} t={t} locale={locale} />
 
       <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={requesting}>
-        {requesting ? <><span className="spin" /> Sending a code…</> : 'Send me a code'}
+        {requesting ? <><span className="spin" /> {t.common.sending}</> : t.auth.sendCode}
       </button>
     </form>
   );

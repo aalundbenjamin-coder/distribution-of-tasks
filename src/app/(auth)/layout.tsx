@@ -1,7 +1,11 @@
 import Link from 'next/link';
 import { LogoMark } from '@/components/TopBar';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { getTranslations } from '@/lib/i18n';
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { locale, t } = await getTranslations();
+
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-raised)' }}>
@@ -9,9 +13,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="row" style={{ gap: 9 }}>
             <LogoMark />
             <span style={{ fontWeight: 680, letterSpacing: '-0.02em', fontSize: 15 }}>
-              Distribution<span className="subtle" style={{ fontWeight: 500 }}> of Tasks</span>
+              {t.meta.appName}
             </span>
           </Link>
+          <div style={{ flex: 1 }} />
+          <LanguageSwitcher current={locale} compact />
         </div>
       </header>
 
@@ -19,9 +25,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       <footer style={{ borderTop: '1px solid var(--border)', padding: '18px 0' }}>
         <div className="shell row" style={{ gap: 18, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link href="/legal/terms" className="tiny subtle">Terms of service</Link>
-          <Link href="/legal/privacy" className="tiny subtle">Privacy policy</Link>
-          <Link href="/" className="tiny subtle">About the system</Link>
+          <Link href="/legal/terms" className="tiny subtle">{t.consent.TERMS_OF_SERVICE}</Link>
+          <Link href="/legal/privacy" className="tiny subtle">{t.consent.PRIVACY_POLICY}</Link>
         </div>
       </footer>
     </div>

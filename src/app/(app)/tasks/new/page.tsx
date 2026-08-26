@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
 import TaskForm from '@/components/TaskForm';
 import { PageHeader } from '@/components/ui';
+import { getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'New task' };
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ export default async function NewTaskPage({
 }) {
   await requireDistributor('/tasks/new');
   const { folder } = await searchParams;
+  const { t } = await getTranslations();
 
   const [folders, positions, skills] = await Promise.all([
     prisma.taskFolder.findMany({
@@ -28,9 +30,9 @@ export default async function NewTaskPage({
   return (
     <div className="shell-narrow" style={{ padding: 0, maxWidth: 900 }}>
       <PageHeader
-        eyebrow="Distribute work"
-        title="New task"
-        lede="Describe the work and what it takes. The system does the matching — you never pick a name off a list unless you want to."
+        eyebrow={t.tasks.newEyebrow}
+        title={t.tasks.newTitle}
+        lede={t.tasks.newLede}
       />
       <TaskForm
         defaultFolderId={folder}
@@ -48,6 +50,7 @@ export default async function NewTaskPage({
           category: s.category,
           kind: s.kind,
         }))}
+        t={t}
       />
     </div>
   );

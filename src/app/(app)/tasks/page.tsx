@@ -2,9 +2,18 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { requireUser, canDistribute } from '@/lib/server/permissions';
-import { TASK_STATUSES, TASK_STATUS_LABELS, type TaskStatus } from '@/lib/domain/enums';
-import { Card, PageHeader, PriorityBadge, TaskStatusBadge, formatDate } from '@/components/ui';
+import { TASK_STATUSES, type TaskStatus } from '@/lib/domain/enums';
+import {
+  Card,
+  PageHeader,
+} from '@/components/ui';
+import {
+  LocalDate,
+  PriorityBadge,
+  TaskStatusBadge,
+} from '@/components/ui-labels';
 import { PlusIcon } from '@/components/icons';
+import { fill, getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Tasks' };
 export const dynamic = 'force-dynamic';
@@ -16,6 +25,7 @@ export default async function TasksPage({
 }) {
   const user = await requireUser('/tasks');
   const params = await searchParams;
+  const { t } = await getTranslations();
   const isDistributor = canDistribute(user.role);
 
   const statusFilter = (TASK_STATUSES as readonly string[]).includes(params.status ?? '')
@@ -64,16 +74,12 @@ export default async function TasksPage({
   return (
     <>
       <PageHeader
-        title={isDistributor ? 'Tasks' : 'My tasks'}
-        lede={
-          isDistributor
-            ? 'Everything in every folder, and where each piece ended up.'
-            : 'Work that has been matched to your recorded capabilities.'
-        }
+        title={isDistributor ? t.tasks.title : t.tasks.myTitle}
+        lede={isDistributor ? t.tasks.lede : t.tasks.myLede}
         action={
           isDistributor && (
             <Link href="/tasks/new" className="btn btn-primary">
-              <PlusIcon size={16} /> New task
+              <PlusIcon size={16} /> {t.dash.newTask}
             </Link>
           )
         }
@@ -81,7 +87,7 @@ export default async function TasksPage({
 
       <div className="row" style={{ gap: 7, flexWrap: 'wrap', marginBottom: 18 }}>
         <Link href="/tasks" className="badge" style={!statusFilter ? activeChip : undefined}>
-          All
+          {t.common.all}
         </Link>
         {TASK_STATUSES.filter((s) => (countByStatus.get(s) ?? 0) > 0).map((status) => (
           <Link
@@ -90,7 +96,7 @@ export default async function TasksPage({
             className="badge"
             style={statusFilter === status ? activeChip : undefined}
           >
-            {TASK_STATUS_LABELS[status]} · {countByStatus.get(status)}
+            {t.taskStatus[status]} · {countByStatus.get(status)}
           </Link>
         ))}
       </div>
@@ -99,19 +105,19 @@ export default async function TasksPage({
         {tasks.length === 0 ? (
           <div className="empty">
             {isDistributor
-              ? 'No tasks match this filter.'
-              : 'Nothing assigned to you yet. New work arrives in the bell.'}
+              ? t.tasks.noneMatch
+              : t.tasks.noneAssigned}
           </div>
         ) : (
           <div className="table-wrap">
             <table className="data">
               <thead>
                 <tr>
-                  <th>Task</th>
-                  <th style={{ width: 170 }}>Status</th>
-                  <th style={{ width: 180 }}>Assigned to</th>
-                  <th style={{ width: 130 }}>Folder</th>
-                  <th style={{ width: 120 }}>Due</th>
+                  <th>{t.dash.colTask}</th>
+                  <th style={{ width: 170 }}>{t.tasks.colStatus}</th>
+                  <th style={{ width: 180 }}>{t.tasks.colAssignedTo}</th>
+                  <th style={{ width: 130 }}>{t.tasks.colFolder}</th>
+                  <th style={{ width: 120 }}>{t.tasks.colDue}</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,11 +132,8 @@ export default async function TasksPage({
                         <div className="tiny subtle row" style={{ gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
                           <span className="mono">{task.reference}</span>
                           <PriorityBadge priority={task.priority} />
-                          <span>
-                            {task._count.requirements} requirement
-                            {task._count.requirements === 1 ? '' : 's'}
-                          </span>
-                          <span>{task.estimatedHours} h</span>
+                          <span>{fill(t.tasks.requirementsCount, { n: task._count.requirements })}</span>
+                          <span>{task.estimatedHours} {t.common.hours}</span>
                         </div>
                       </td>
                       <td><TaskStatusBadge status={task.status} /></td>
@@ -140,7 +143,7 @@ export default async function TasksPage({
                       <td className="small muted">
                         <Link href={`/folders/${task.folder.id}`}>{task.folder.name}</Link>
                       </td>
-                      <td className="small muted">{formatDate(task.dueAt)}</td>
+                      <td className="small muted">{<LocalDate value={task.dueAt} />}</td>
                     </tr>
                   );
                 })}
