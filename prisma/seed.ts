@@ -18,6 +18,25 @@
 import { PrismaClient } from '../src/generated/prisma';
 import { randomBytes, scryptSync } from 'node:crypto';
 
+// Load .env before constructing the client. Prisma loads it implicitly in some
+// setups and not others — with a custom generator `output` path it is not
+// reliable — and a seed that silently connects to nothing is worse than one
+// that refuses to start.
+try {
+  process.loadEnvFile();
+} catch {
+  // No .env file. Expected in CI and in production, where the environment
+  // already carries DATABASE_URL.
+}
+
+if (!process.env.DATABASE_URL?.trim()) {
+  console.error(
+    'DATABASE_URL is not set, so there is no database to seed.\n' +
+      'Copy .env.example to .env, or export DATABASE_URL before running this.',
+  );
+  process.exit(1);
+}
+
 const prisma = new PrismaClient();
 
 function hashPassword(password: string): string {
@@ -43,7 +62,9 @@ function daysFromNow(days: number): Date {
 async function main() {
   console.info('Seeding…');
 
-  // Idempotent: wipe the demo data so re-running gives the same starting point.
+  // Destructive and deliberate: this removes *all* data, not just rows this
+  // script wrote, so that re-running gives an identical starting point. Never
+  // point it at a database anyone depends on.
   await prisma.$transaction([
     prisma.matchCandidate.deleteMany(),
     prisma.assignment.deleteMany(),

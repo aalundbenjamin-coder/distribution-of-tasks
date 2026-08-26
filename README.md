@@ -50,10 +50,10 @@ a task of your own.
 Other scripts:
 
 ```bash
-npm test           # 87 tests: the gate, the ranking, validation, and end-to-end
+npm test           # 89 tests: the gate, the ranking, validation, and end-to-end
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
-npm run db:seed    # wipe the demo data and reseed
+npm run db:seed    # replace all data with the demo organisation (destructive)
 npm run db:migrate # create a migration after changing the schema
 npm run db:deploy  # apply pending migrations (what production runs)
 ```
@@ -208,6 +208,11 @@ that message?" always has an answer. The full history is on the settings page.
 | **Head of distribution** | Everything above, plus folders, tasks, all capability profiles, verifying capabilities, and manual assignment |
 | **Platform administrator** | Everything, plus the audit trail |
 
+The first account created on an empty database is made a platform
+administrator, so a new deployment has someone who can set it up. Everyone
+after that is a coworker, because the ability to hand out work should be
+granted deliberately rather than claimed by signing up.
+
 Navigation is built from the role, but the pages themselves are the real guard —
 every page and every server action checks independently and fails closed.
 
@@ -237,36 +242,49 @@ database, and `DATABASE_URL` pointing at it.
 
 ### On Vercel
 
-1. Import the repository. The framework and build command are detected; the
-   build runs `prisma generate && next build`, so the client is always
-   generated fresh (the generated client is not committed).
+1. Import the repository. Next.js is detected automatically.
 2. Add a Postgres database under **Storage** — Neon and Prisma Postgres are both
-   one click, and both inject `DATABASE_URL` into the project automatically. Use
-   the **pooled** connection string.
-3. Apply the schema once, from your machine, against the same database:
+   one click, and both set `DATABASE_URL` on the project for you.
+3. Redeploy.
 
-   ```bash
-   DATABASE_URL="<unpooled connection string>" npx prisma migrate deploy
-   ```
+That is the whole setup. The build runs
+`prisma generate && node scripts/migrate-if-configured.mjs && next build`, so
+the client is generated fresh and the schema is applied on the way through.
 
-   Use the *unpooled* URL for this one step: a transaction pooler cannot run
-   some of the statements a migration issues. Everything the running app does
-   works fine through the pooled URL.
-4. Optionally seed the demo organisation the same way:
+Then open the site and **sign up**. The first account to exist becomes the
+platform administrator — otherwise a new deployment would have nobody able to
+create a folder, and no way to appoint one without opening the database by
+hand. Every account after it is an ordinary coworker.
 
-   ```bash
-   DATABASE_URL="<unpooled connection string>" npx tsx prisma/seed.ts
-   ```
+Optionally set `APP_ORIGIN` to the deployed URL, so links inside e-mails and
+SMS point somewhere real.
 
-   Skip this for a real deployment — it deletes all existing data and replaces
-   it with the demo set. Create the first account through the sign-up form
-   instead, then promote it to `HEAD_OF_DISTRIBUTION` in the database.
-5. Set `APP_ORIGIN` to the deployed URL so links inside e-mails and SMS point
-   somewhere real.
+#### About migrations in the build
 
-Migrations are deliberately **not** run during the build. A build that mutates
-the database is a build you cannot safely re-run, and Vercel re-runs builds for
-every preview branch.
+Running migrations during a build is normally poor practice — a build that
+mutates state is one you cannot freely re-run. It is done here deliberately,
+because the alternative is that attaching a database leaves the app still
+broken until someone clones the repository and runs a migration by hand, and
+that step is where a deployment stalls.
+
+The step is written to be safe about it:
+
+- **No `DATABASE_URL`** → skipped with a clear notice. The build still
+  succeeds and the public pages still render, so a half-configured project is
+  not a failed project.
+- **Schema already current** → `prisma migrate deploy` applies only what is
+  pending, and takes an advisory lock, so concurrent preview builds cannot race.
+- **Migration fails** → the build stops. The previous deployment keeps serving
+  and the reason is in the build log, rather than hidden behind runtime errors.
+
+If your provider's pooled URL refuses migration statements, point
+`DATABASE_URL` at the direct (unpooled) connection string.
+
+#### Seeding a deployed instance
+
+Don't, unless you want the demo organisation. `prisma/seed.ts` deletes all
+existing data before writing its own. Sign up instead — the first account is
+made an administrator for exactly this reason.
 
 ### Anywhere else
 
@@ -313,7 +331,7 @@ src/
     actions/              server actions
     api/auth/             Google OAuth and sign-out
   components/             the interface
-tests/                    87 tests
+tests/                    89 tests
 ```
 
 The engine takes plain data, returns plain data, and touches neither the database

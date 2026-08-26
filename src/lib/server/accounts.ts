@@ -16,7 +16,7 @@ import { prisma } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/auth/crypto';
 import { normaliseEmail, normalisePhone } from '@/lib/auth/validation';
 import { TERMS_VERSION, recordConsents, type ConsentDecision } from '@/lib/auth/consent';
-import { REQUIRED_CONSENTS, type ConsentType } from '@/lib/domain/enums';
+import { REQUIRED_CONSENTS, type ConsentType, type UserRole } from '@/lib/domain/enums';
 import { notify } from '@/lib/notifications/dispatch';
 import { recordAudit } from './audit';
 
@@ -41,6 +41,23 @@ function avatarColourFor(seed: string): string {
 export type AccountResult =
   | { ok: true; userId: string; isNew: boolean }
   | { ok: false; error: string; field?: string };
+
+/**
+ * The role a newly created account should get.
+ *
+ * A freshly deployed instance has nobody who can create a folder, define a
+ * position or distribute anything — and no way to appoint one without opening
+ * the database by hand. So the very first account to exist becomes the platform
+ * administrator, and can then set everyone else's role from inside the app.
+ *
+ * Every subsequent account is an ordinary coworker, which is the right default:
+ * the ability to hand out work should be granted deliberately, not claimed by
+ * signing up.
+ */
+async function roleForNewAccount(): Promise<UserRole> {
+  const existing = await prisma.user.count();
+  return existing === 0 ? 'PLATFORM_ADMIN' : 'COWORKER';
+}
 
 function missingRequiredConsent(decisions: ConsentDecision[]): ConsentType | null {
   for (const type of REQUIRED_CONSENTS) {
@@ -88,6 +105,7 @@ export async function signUpWithEmail(params: {
       fullName: params.fullName,
       passwordHash: await hashPassword(params.password),
       avatarColor: avatarColourFor(email),
+      role: await roleForNewAccount(),
       identities: {
         create: { provider: 'EMAIL_PASSWORD', providerUserId: email, label: email },
       },
@@ -213,6 +231,7 @@ export async function upsertGoogleAccount(params: {
       fullName: params.name,
       emailVerifiedAt: params.emailVerified ? new Date() : null,
       avatarColor: avatarColourFor(email),
+      role: await roleForNewAccount(),
       identities: {
         create: { provider: 'GOOGLE', providerUserId: params.sub, label: email },
       },
@@ -287,6 +306,7 @@ export async function completePhoneAuth(params: {
       fullName,
       phoneVerifiedAt: new Date(),
       avatarColor: avatarColourFor(phone),
+      role: await roleForNewAccount(),
       identities: { create: { provider: 'PHONE', providerUserId: phone, label: phone } },
     },
   });
@@ -323,15 +343,27 @@ async function afterSignUp(userId: string, provider: string, context?: SignUpCon
   });
 
   // The first thing in the bell explains the bell.
+  const created = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  const isFounder = created?.role === 'PLATFORM_ADMIN';
+
   await notify({
     userId,
     type: 'WELCOME',
-    title: 'Welcome to Distribution of Tasks',
-    body:
-      'Your account is ready. Anything that needs your attention shows up here in the bell. ' +
-      'If you also want it by e-mail or SMS, turn that on under Settings → Notifications — ' +
-      'and if you would rather not, everything still arrives here.',
-    link: '/settings',
+    title: isFounder
+      ? 'Welcome — this workspace is yours to set up'
+      : 'Welcome to Distribution of Tasks',
+    body: isFounder
+      ? 'Yours is the first account here, so you have been made the platform administrator. ' +
+        'Start by adding capabilities, then a position or two, then a folder for work to arrive in. ' +
+        'Everything that needs your attention shows up here in the bell.'
+      : 'Your account is ready. Anything that needs your attention shows up here in the bell. ' +
+        'If you also want it by e-mail or SMS, turn that on under Settings → Notifications — ' +
+        'and if you would rather not, everything still arrives here.',
+    link: isFounder ? '/skills' : '/settings',
     severity: 'SUCCESS',
     category: 'OPERATIONAL',
   });
