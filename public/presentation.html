@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A walkthrough of capability-matched task distribution: five coworkers, two real matching decisions, and the record of who did what.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="The Right Name On It">
+<meta property="og:description" content="Work goes in a folder. The right name comes out.">
+<meta property="og:type" content="website">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<title>The Right Name On It</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ===================================================================
+   Tokens. Light is the bare :root; dark is redefined twice so that the
+   un-stamped (system) state and an explicit toggle both resolve.
+   =================================================================== */
+:root{
+  color-scheme: light;
+  --ground:#f4f6fa; --surface:#ffffff; --surface-2:#eaeef5; --surface-3:#e1e7f0;
+  --line:#dbe1ea; --line-strong:#c3cbd9;
+  --ink:#0e1420; --ink-2:#525d70; --ink-3:#7b8697;
+  --accent:#2f5fe0; --accent-soft:#e7eefc; --accent-line:#b7c9f5; --accent-ink:#1f47ad;
+  --ok:#0f6d47; --ok-soft:#e2f3eb; --ok-line:#a4d8be;
+  --warn:#8d5300; --warn-soft:#fcefda; --warn-line:#eecb8e;
+  --danger:#a92019; --danger-soft:#fceae9; --danger-line:#f1b8b3;
+  --info:#1c5980; --info-soft:#e5f0f7; --info-line:#aecfe4;
+  --r:12px; --r-sm:8px; --r-lg:18px;
+  --shadow:0 1px 2px rgb(14 20 32/.05), 0 8px 24px rgb(14 20 32/.06);
+  --shadow-lg:0 24px 60px rgb(14 20 32/.14);
+  --display:'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --ui:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0a0e15; --surface:#131924; --surface-2:#1a2130; --surface-3:#212a3a;
+    --line:#242c3a; --line-strong:#374152;
+    --ink:#e9edf5; --ink-2:#9ba6b7; --ink-3:#6e7b8e;
+    --accent:#7ba1f7; --accent-soft:#16233d; --accent-line:#2e4174; --accent-ink:#a8c1fa;
+    --ok:#5ecb9c; --ok-soft:#0f2820; --ok-line:#22503d;
+    --warn:#e5a84f; --warn-soft:#2a2013; --warn-line:#564120;
+    --danger:#f3857e; --danger-soft:#2d1717; --danger-line:#5c2c29;
+    --info:#71b6df; --info-soft:#11222d; --info-line:#254759;
+    --shadow:0 1px 2px rgb(0 0 0/.4), 0 8px 24px rgb(0 0 0/.35);
+    --shadow-lg:0 24px 60px rgb(0 0 0/.55);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0a0e15; --surface:#131924; --surface-2:#1a2130; --surface-3:#212a3a;
+  --line:#242c3a; --line-strong:#374152;
+  --ink:#e9edf5; --ink-2:#9ba6b7; --ink-3:#6e7b8e;
+  --accent:#7ba1f7; --accent-soft:#16233d; --accent-line:#2e4174; --accent-ink:#a8c1fa;
+  --ok:#5ecb9c; --ok-soft:#0f2820; --ok-line:#22503d;
+  --warn:#e5a84f; --warn-soft:#2a2013; --warn-line:#564120;
+  --danger:#f3857e; --danger-soft:#2d1717; --danger-line:#5c2c29;
+  --info:#71b6df; --info-soft:#11222d; --info-line:#254759;
+  --shadow:0 1px 2px rgb(0 0 0/.4), 0 8px 24px rgb(0 0 0/.35);
+  --shadow-lg:0 24px 60px rgb(0 0 0/.55);
+}
+
+*{box-sizing:border-box;min-width:0}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--ui); font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0; font-family:var(--display); font-weight:700; letter-spacing:-.025em; line-height:1.12; text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.narrate{max-width:64ch;margin:0 auto;padding:0 28px}
+.band{padding:76px 0}
+.band + .band{padding-top:0}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+.stack{display:flex;flex-direction:column}
+.row{display:flex;align-items:center}
+
+/* ---------- type ---------- */
+.eyebrow{
+  font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+.lede{font-size:18.5px;color:var(--ink-2);line-height:1.62}
+.small{font-size:14px}
+.tiny{font-size:12.5px}
+.muted{color:var(--ink-2)}
+.subtle{color:var(--ink-3)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- hero ---------- */
+.hero{padding:96px 0 60px;text-align:center}
+.hero h1{font-size:clamp(38px,6.4vw,68px);letter-spacing:-.038em;max-width:15ch;margin:22px auto 0}
+.hero .lede{max-width:56ch;margin:22px auto 0}
+.badge-line{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+
+/* ---------- pill / badge ---------- */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;
+  font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);
+  white-space:nowrap;
+}
+.pill.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+.pill.bad{background:var(--danger-soft);border-color:var(--danger-line);color:var(--danger)}
+.pill.info{background:var(--info-soft);border-color:var(--info-line);color:var(--info)}
+.pill.accent{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+.dot{width:6px;height:6px;border-radius:999px;background:currentColor;flex:none}
+
+/* ---------- card ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.card-hd{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.card-bd{padding:22px}
+.card-t{font-family:var(--ui);font-size:14.5px;font-weight:650;letter-spacing:-.01em}
+.card-s{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+
+/* ---------- pipeline ---------- */
+.pipe{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin-top:38px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;position:relative;overflow:hidden}
+.step::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent)}
+.step[data-tone="gate"]::before{background:var(--danger)}
+.step[data-tone="rank"]::before{background:var(--warn)}
+.step[data-tone="done"]::before{background:var(--ok)}
+.step-n{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-3);letter-spacing:.1em}
+.step h3{font-size:15.5px;margin:8px 0 7px;font-family:var(--ui);font-weight:650;letter-spacing:-.012em}
+.step p{font-size:13.5px;color:var(--ink-2);line-height:1.55}
+
+/* ---------- team ---------- */
+.team{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));margin-top:36px}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.person-hd{display:flex;gap:15px;padding:20px 20px 16px;align-items:flex-start}
+.portrait{width:74px;height:74px;border-radius:999px;flex:none;display:block;border:1px solid var(--line)}
+.person-hd h3{font-family:var(--ui);font-size:16.5px;font-weight:680;letter-spacing:-.015em}
+.role{font-size:13px;color:var(--ink-2);margin-top:2px}
+.person-sec{padding:15px 20px;border-top:1px solid var(--line)}
+.person-sec h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:9px}
+.thesis{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+.thesis strong{color:var(--ink);font-weight:600}
+.thesis em{font-style:normal;color:var(--ink);font-weight:500}
+
+/* capability rows */
+.cap{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;padding:5px 0}
+.cap-name{font-size:13.5px;display:flex;align-items:flex-start;gap:6px;min-width:0;flex:1 1 auto;line-height:1.4}
+.cap-name svg{margin-top:2px}
+.cap > .tiny,.cap > .pips{flex:0 0 auto;text-align:right;padding-top:1px}
+.pips{display:inline-flex;gap:3px;flex:none}
+.pips i{width:7px;height:15px;border-radius:2px;background:var(--surface-3);border:1px solid var(--line);display:block}
+.pips i.on{background:var(--accent);border-color:var(--accent)}
+.verified{color:var(--ok);display:inline-flex;flex:none}
+.lapsed{color:var(--danger);display:inline-flex;flex:none}
+
+/* history list */
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.hist li{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.hist .ref{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);flex:none;padding-top:1px}
+.hist .ttl{color:var(--ink-2);line-height:1.42}
+.hist .dt{margin-left:auto;font-size:11.5px;color:var(--ink-3);flex:none;font-variant-numeric:tabular-nums}
+
+/* ---------- app surface ---------- */
+.app{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-lg)}
+.app-bar{display:flex;align-items:center;gap:9px;padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.app-bar .tl{display:flex;gap:6px}
+.app-bar .tl i{width:10px;height:10px;border-radius:999px;background:var(--line-strong);display:block}
+.app-url{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:3px 10px;margin-left:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-bd{padding:24px}
+
+/* ---------- table ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.d{width:100%;border-collapse:collapse;font-size:13.5px}
+table.d th{
+  text-align:left;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);padding:9px 14px;background:var(--surface-2);
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+table.d td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+table.d tbody tr:last-child td{border-bottom:0}
+table.d tr.win{background:var(--accent-soft)}
+table.d tr.out td{opacity:.86}
+
+/* meter */
+.meter{height:7px;border-radius:999px;background:var(--surface-3);border:1px solid var(--line);overflow:hidden;min-width:64px}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.meter.g i{background:var(--ok)}
+.score{display:flex;align-items:center;gap:10px}
+.score b{font-family:var(--mono);font-size:13.5px;font-weight:600;min-width:38px;font-variant-numeric:tabular-nums}
+
+/* notice */
+.notice{display:flex;gap:11px;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface-2);font-size:14px;line-height:1.55}
+.notice.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.notice.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+.notice.bad{background:var(--danger-soft);border-color:var(--danger-line);color:var(--danger)}
+.notice.accent{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+.notice svg{flex:none;margin-top:2px}
+.notice b{font-weight:650}
+
+/* blocker list */
+.blk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.blk li{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink-2);line-height:1.45}
+.blk svg{flex:none;margin-top:2px}
+
+/* factor bars */
+.fac{display:grid;grid-template-columns:minmax(120px,1.1fr) 60px minmax(70px,1fr);gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.fac:last-child{border-bottom:0}
+.fac-l{font-size:13px;color:var(--ink-2)}
+.fac-v{font-family:var(--mono);font-size:12.5px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+
+/* split */
+.split{display:grid;gap:22px;grid-template-columns:minmax(0,340px) minmax(0,1fr);align-items:start;margin-top:34px}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+
+/* ---------- timeline ---------- */
+.tl-list{display:flex;flex-direction:column;gap:0;margin:32px auto 0;max-width:820px}
+.tl-row{display:grid;grid-template-columns:104px 30px minmax(0,1fr);gap:0;align-items:start}
+.tl-date{font-family:var(--mono);font-size:12px;color:var(--ink-3);padding:18px 14px 18px 0;text-align:right;font-variant-numeric:tabular-nums}
+.tl-spine{position:relative;display:flex;justify-content:center}
+.tl-spine::before{content:"";position:absolute;top:0;bottom:0;width:2px;background:var(--line)}
+.tl-row:first-child .tl-spine::before{top:22px}
+.tl-row:last-child .tl-spine::before{bottom:calc(100% - 22px)}
+.tl-node{width:11px;height:11px;border-radius:999px;background:var(--ok);border:2.5px solid var(--surface);margin-top:20px;position:relative;z-index:1;box-shadow:0 0 0 1px var(--ok-line)}
+.tl-card{padding:14px 0 18px}
+.tl-card .t{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.tl-card .m{font-size:12.5px;color:var(--ink-2);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.who{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--ink);font-size:12.5px}
+.who .portrait{width:22px;height:22px;border:0}
+
+/* ---------- misc ---------- */
+.kpis{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:30px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.kpi .v{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:-.03em;margin-top:5px;font-variant-numeric:tabular-nums}
+.kpi .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.kpi .h{font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.foot{padding:44px 0 64px;border-top:1px solid var(--line);margin-top:70px}
+@media(max-width:640px){
+  .wrap,.narrate{padding:0 18px}
+  .band{padding:52px 0}
+  .hero{padding:64px 0 40px}
+  .tl-row{grid-template-columns:74px 24px minmax(0,1fr)}
+  .tl-date{padding-right:10px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<main>
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="wrap">
+    <span class="pill accent">Capability-matched work distribution</span>
+    <h1>Work goes in a folder. The right name comes out.</h1>
+    <p class="lede">A head of distribution drops a job into a folder and stops thinking about it.
+      The system checks it against what every person on the team can actually do &mdash; recorded levels,
+      certifications and their expiry dates, availability, workload &mdash; removes everyone who does not
+      qualify, ranks the ones who do, and hands the work over with its reasoning attached.</p>
+    <div class="badge-line">
+      <span class="pill"><span class="dot" style="color:var(--danger)"></span>Nobody unqualified is ever in the running</span>
+      <span class="pill"><span class="dot" style="color:var(--warn)"></span>Every decision explains itself</span>
+      <span class="pill"><span class="dot" style="color:var(--ok)"></span>Finished work stays attached to a person</span>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ PIPELINE ============================ -->
+<section class="band">
+  <div class="narrate" style="text-align:center;max-width:56ch">
+    <span class="eyebrow">What happens to one task</span>
+    <h2 style="font-size:30px;margin-top:12px">Four steps, in this order, every time</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">The order matters. Qualification is settled before ranking
+      begins, so no score can ever talk the system into someone who should not be there.</p>
+  </div>
+  <div class="wrap">
+    <div class="pipe">
+      <div class="step"><div class="step-n">STEP 1</div><h3>The admin fills in the job</h3>
+        <p>What the work is, how long it should take, when it is due, and which capabilities it needs. That is the last decision a person has to make.</p></div>
+      <div class="step" data-tone="gate"><div class="step-n">STEP 2</div><h3>Unqualified people are removed</h3>
+        <p>Missing capability, level too low, expired certification, wrong language, on leave, no capacity left. Fail one and you are out &mdash; there is no score in this step.</p></div>
+      <div class="step" data-tone="rank"><div class="step-n">STEP 3</div><h3>The rest are ranked</h3>
+        <p>Seven weighted factors: how far each person clears the bar, whether a lead verified it, experience, spare capacity, workload balance, the deadline, and role fit.</p></div>
+      <div class="step" data-tone="done"><div class="step-n">STEP 4</div><h3>One person gets it &mdash; on the record</h3>
+        <p>The assignment carries its own reasoning. Everyone who was passed over is listed with the exact requirement they missed.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ TEAM ============================ -->
+<section class="band">
+  <div class="narrate">
+    <span class="eyebrow">The team</span>
+    <h2 style="font-size:30px;margin-top:12px">Five people, five different educations</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">This is what the system reads. Not a job title &mdash; a
+      specification: what each person studied, what they are genuinely good at and to what level, which certificates
+      they hold and when those run out, and every job they have finished.</p>
+    <p class="lede" style="margin-top:12px;font-size:17px">A capability marked
+      <span class="verified" style="vertical-align:-2px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span> has been signed off by a lead. One that is
+      only self-declared still counts, but it ranks below a verified one.</p>
+  </div>
+  <div class="wrap"><div class="team"><article class="person">
+  <div class="person-hd">
+    <svg class="portrait" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>
+    <div>
+      <h3>Sofie Lindgren</h3>
+      <div class="role">Senior Electrical Technician · Field Service</div>
+      <div style="margin-top:8px"><span class="pill"><span class="dot"></span>2 open · 12 of 37 h</span></div>
+    </div>
+  </div>
+  <div class="person-sec">
+    <h4>Education</h4>
+    <p class="thesis"><strong>MSc Electrical Power Engineering</strong><br>Danmarks Tekniske Universitet (DTU)</p>
+    <p class="thesis" style="margin-top:8px">Thesis: <em>&ldquo;Arc-fault signatures in low-voltage distribution boards&rdquo;</em></p>
+  </div>
+  <div class="person-sec">
+    <h4>What they are good at</h4>
+    <p class="thesis" style="margin-bottom:10px">Reads a fault from its transient signature before opening the panel. The one the team calls when a trip has no obvious cause.</p>
+    <div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Electrical fault-finding</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Low-voltage work permit</span></span><span class="tiny subtle">Valid to 30 Jun 2027</span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>High-voltage switching</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Customer handover</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span>Technical report writing</span></span><span class="pips" role="img" aria-label="Level 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+  </div>
+  <div class="person-sec" style="margin-top:auto">
+    <h4>Work they have completed</h4>
+    <ul class="hist"><li><span class="ref">TSK-1908</span><span class="ttl">Replace damaged distribution board, north site</span><span class="dt">12 Aug</span></li><li><span class="ref">TSK-1876</span><span class="ttl">Emergency isolation after water ingress, Hillerød</span><span class="dt">31 Jul</span></li><li><span class="ref">TSK-1844</span><span class="ttl">Thermographic survey, main switchroom</span><span class="dt">18 Jul</span></li></ul>
+  </div>
+</article>
+<article class="person">
+  <div class="person-hd">
+    <svg class="portrait" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>
+    <div>
+      <h3>Freja Nilsen</h3>
+      <div class="role">Field Service Engineer · Field Service</div>
+      <div style="margin-top:8px"><span class="pill"><span class="dot"></span>3 open · 18 of 37 h</span></div>
+    </div>
+  </div>
+  <div class="person-sec">
+    <h4>Education</h4>
+    <p class="thesis"><strong>BEng Electrical Installation &amp; Service</strong><br>Københavns Erhvervsakademi (KEA)</p>
+    <p class="thesis" style="margin-top:8px">Thesis: <em>&ldquo;Reducing handover defects through structured customer sign-off&rdquo;</em></p>
+  </div>
+  <div class="person-sec">
+    <h4>What they are good at</h4>
+    <p class="thesis" style="margin-bottom:10px">Turns a finished repair into a signed, documented handover. Customers ask for her by name.</p>
+    <div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Customer handover</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Electrical fault-finding</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span>Technical report writing</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span class="lapsed" title="Expired"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg></span><span>Low-voltage work permit</span></span><span class="tiny" style="color:var(--danger);font-weight:600">LAPSED 5 Aug 2026</span></div>
+  </div>
+  <div class="person-sec" style="margin-top:auto">
+    <h4>Work they have completed</h4>
+    <ul class="hist"><li><span class="ref">TSK-1921</span><span class="ttl">Customer handover and acceptance test, Køge line 2</span><span class="dt">20 Aug</span></li><li><span class="ref">TSK-1889</span><span class="ttl">Service visit, packaging hall</span><span class="dt">5 Aug</span></li><li><span class="ref">TSK-1857</span><span class="ttl">Fault report, conveyor drive</span><span class="dt">22 Jul</span></li></ul>
+  </div>
+</article>
+<article class="person">
+  <div class="person-hd">
+    <svg class="portrait" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg>
+    <div>
+      <h3>Mikkel Dahl</h3>
+      <div class="role">Automation Engineer · Automation</div>
+      <div style="margin-top:8px"><span class="pill"><span class="dot"></span>4 open · 22 of 37 h</span></div>
+    </div>
+  </div>
+  <div class="person-sec">
+    <h4>Education</h4>
+    <p class="thesis"><strong>BEng Automation &amp; Control Engineering</strong><br>Aarhus Universitet</p>
+    <p class="thesis" style="margin-top:8px">Thesis: <em>&ldquo;Safety-rated PLC architectures for collaborative robot cells&rdquo;</em></p>
+  </div>
+  <div class="person-sec">
+    <h4>What they are good at</h4>
+    <p class="thesis" style="margin-bottom:10px">Builds the control logic that makes a machine safe to stand next to, and proves it on paper afterwards.</p>
+    <div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>PLC programming</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Safety systems</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Technical report writing</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span>Data analysis</span></span><span class="pips" role="img" aria-label="Level 2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div><div class="cap"><span class="cap-name"><span>Electrical fault-finding</span></span><span class="pips" role="img" aria-label="Level 2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Low-voltage work permit</span></span><span class="tiny subtle">Valid to 1 Mar 2027</span></div>
+  </div>
+  <div class="person-sec" style="margin-top:auto">
+    <h4>Work they have completed</h4>
+    <ul class="hist"><li><span class="ref">TSK-1915</span><span class="ttl">Commission palletiser cell, Vejle</span><span class="dt">17 Aug</span></li><li><span class="ref">TSK-1902</span><span class="ttl">Safety circuit proving after guard rebuild</span><span class="dt">9 Aug</span></li><li><span class="ref">TSK-1868</span><span class="ttl">PLC migration, line 4</span><span class="dt">28 Jul</span></li></ul>
+  </div>
+</article>
+<article class="person">
+  <div class="person-hd">
+    <svg class="portrait" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>
+    <div>
+      <h3>Jonas Berg</h3>
+      <div class="role">Reliability Data Engineer · Automation</div>
+      <div style="margin-top:8px"><span class="pill"><span class="dot"></span>1 open · 8 of 30 h</span></div>
+    </div>
+  </div>
+  <div class="person-sec">
+    <h4>Education</h4>
+    <p class="thesis"><strong>MSc Data Engineering</strong><br>IT-Universitetet i København (ITU)</p>
+    <p class="thesis" style="margin-top:8px">Thesis: <em>&ldquo;Predictive maintenance from vibration telemetry&rdquo;</em></p>
+  </div>
+  <div class="person-sec">
+    <h4>What they are good at</h4>
+    <p class="thesis" style="margin-bottom:10px">Finds the failure three weeks before it happens, then writes it up so someone can act on it.</p>
+    <div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Data analysis</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Technical report writing</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span>PLC programming</span></span><span class="pips" role="img" aria-label="Level 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+  </div>
+  <div class="person-sec" style="margin-top:auto">
+    <h4>Work they have completed</h4>
+    <ul class="hist"><li><span class="ref">TSK-1912</span><span class="ttl">Downtime analysis, Q2</span><span class="dt">15 Aug</span></li><li><span class="ref">TSK-1881</span><span class="ttl">Sensor data pipeline for bearing telemetry</span><span class="dt">2 Aug</span></li><li><span class="ref">TSK-1839</span><span class="ttl">Reliability baseline report, all sites</span><span class="dt">15 Jul</span></li></ul>
+  </div>
+</article>
+<article class="person">
+  <div class="person-hd">
+    <svg class="portrait" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>
+    <div>
+      <h3>Amira Haddad</h3>
+      <div class="role">Senior Mechanical Technician · Workshop</div>
+      <div style="margin-top:8px"><span class="pill warn">On leave · back 14 Sep</span></div>
+    </div>
+  </div>
+  <div class="person-sec">
+    <h4>Education</h4>
+    <p class="thesis"><strong>MSc Mechanical Engineering</strong><br>Lunds Universitet</p>
+    <p class="thesis" style="margin-top:8px">Thesis: <em>&ldquo;Fatigue life prediction in high-pressure hydraulic cylinders&rdquo;</em></p>
+  </div>
+  <div class="person-sec">
+    <h4>What they are good at</h4>
+    <p class="thesis" style="margin-bottom:10px">Rebuilds what everyone else writes off. Knows exactly how many cycles a cylinder has left in it.</p>
+    <div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Hydraulics</span></span><span class="pips" role="img" aria-label="Level 5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>MIG welding</span></span><span class="pips" role="img" aria-label="Level 4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div><div class="cap"><span class="cap-name"><span class="verified" title="Verified by a lead"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-3.4 8-9.5V5.5L12 2.5 4 5.5v7C4 18.6 12 22 12 22z"/><path d="M9 12l2 2 4-4"/></svg></span><span>Forklift licence</span></span><span class="tiny subtle">Valid to 1 Nov 2027</span></div><div class="cap"><span class="cap-name"><span>Technical report writing</span></span><span class="pips" role="img" aria-label="Level 3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+  </div>
+  <div class="person-sec" style="margin-top:auto">
+    <h4>Work they have completed</h4>
+    <ul class="hist"><li><span class="ref">TSK-1898</span><span class="ttl">Rebuild tipper ram assembly</span><span class="dt">7 Aug</span></li><li><span class="ref">TSK-1866</span><span class="ttl">Weld repair, boom section</span><span class="dt">26 Jul</span></li><li><span class="ref">TSK-1831</span><span class="ttl">Hydraulic press overhaul</span><span class="dt">11 Jul</span></li></ul>
+  </div>
+</article></div></div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ DECISION 1 ============================ -->
+<section class="band">
+  <div class="narrate">
+    <span class="eyebrow">Decision one &mdash; the gate does the work</span>
+    <h2 style="font-size:30px;margin-top:12px">An emergency callout on a live site</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">A packing line keeps tripping. The site is live, so the job
+      needs someone who can find an electrical fault <em>and</em> holds a current low-voltage work permit.
+      The admin types it once and sends it to the folder.</p>
+    <p class="lede" style="margin-top:12px;font-size:17px">Four of the five are removed &mdash; and for four
+      <em>different</em> reasons. Watch Freja in particular.</p>
+  </div>
+  <div class="wrap" style="margin-top:34px"><div class="app"><div class="app-bar"><span class="tl"><i></i><i></i><i></i></span>
+      <span class="app-url">distribution-of-tasks.vercel.app/tasks/TSK-2041</span></div><div class="app-bd">
+  <div class="eyebrow">TSK-2041 · Electrical callouts</div>
+  <h3 style="font-size:22px;margin-top:8px;font-family:var(--ui);font-weight:680">Intermittent trip on the packing line feeder</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px">
+    <span class="pill bad"><span class="dot"></span>High priority</span>
+    <span class="pill">6 h estimated</span><span class="pill">Due 28 Aug</span><span class="pill">Language: DA</span></div>
+  <div class="card-t" style="margin-bottom:9px">What this task requires</div><div class="tw"><table class="d"><thead><tr><th>Capability</th><th>Requirement</th><th>Necessity</th><th>Weight</th></tr></thead><tbody><tr><td><strong>Electrical fault-finding</strong></td>
+        <td class="mono">Level 3 or above</td>
+        <td><span class="pill bad">Mandatory</span></td>
+        <td class="num subtle">5</td></tr><tr><td><strong>Low-voltage work permit</strong></td>
+        <td class="mono">Must hold it</td>
+        <td><span class="pill bad">Mandatory</span></td>
+        <td class="num subtle">5</td></tr><tr><td><strong>Customer handover</strong></td>
+        <td class="mono">Level 3 or above</td>
+        <td><span class="pill ">Preferred</span></td>
+        <td class="num subtle">2</td></tr></tbody></table></div>
+  <div class="notice ok" style="margin:22px 0 16px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg><span><b>Sofie Lindgren matched at 80% out of 1 qualified coworker.</b><span style="display:block;margin-top:4px;opacity:.9">Sofie Lindgren scored 80%, meeting 3 of 3 listed capabilities, capability fit 99%, verified capabilities 100%.</span></span></div>
+  <div class="card-t" style="margin:22px 0 9px">Ranked shortlist</div><div class="tw"><table class="d"><thead><tr><th style="width:44px">#</th><th>Coworker</th><th style="width:150px">Match</th><th>Why this position in the order</th></tr></thead><tbody><tr class="win">
+              <td class="mono"><strong>1</strong></td>
+              <td><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg><div><strong>Sofie Lindgren</strong>
+                <div style="margin-top:3px"><span class="pill ok"><span class="dot"></span>Assigned</span></div></div></div></td>
+              <td><div class="score"><span class="meter g"><i style="width:80%"></i></span><b>80%</b></div></td>
+              <td><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill">Capability fit 99%</span><span class="pill">Verified capabilities 100%</span><span class="pill">Experience 100%</span></div><details style="margin-top:9px"><summary class="tiny subtle" style="cursor:pointer">Full breakdown</summary><div style="margin-top:9px"><div class="fac"><span class="fac-l">Capability fit</span><span class="fac-v">99%</span><span class="tiny subtle">Clears every required level, above the bar on 3 of 3.</span></div><div class="fac"><span class="fac-l">Verified capabilities</span><span class="fac-v">100%</span><span class="tiny subtle">2 of 2 required capabilities signed off by a lead.</span></div><div class="fac"><span class="fac-l">Experience</span><span class="fac-v">100%</span><span class="tiny subtle">7.7 years average in the required capabilities.</span></div><div class="fac"><span class="fac-l">Capacity headroom</span><span class="fac-v">51%</span><span class="tiny subtle">19 h of 37 h still free after this task.</span></div><div class="fac"><span class="fac-l">Workload balance</span><span class="fac-v">0%</span><span class="tiny subtle">2 open tasks; busiest on the shortlist has 2.</span></div><div class="fac"><span class="fac-l">Deadline feasibility</span><span class="fac-v">100%</span><span class="tiny subtle">About 11.3 free hours before the deadline against a 6 h estimate.</span></div><div class="fac"><span class="fac-l">Position &amp; department fit</span><span class="fac-v">100%</span><span class="tiny subtle">Holds the position Senior Electrical Technician.</span></div></div></details></td></tr></tbody></table></div>
+  <div class="card-t" style="margin:26px 0 9px">Not considered &mdash; and exactly why</div><div class="tw"><table class="d"><thead><tr><th>Coworker</th><th>Why they were not considered</th></tr></thead><tbody><tr class="out"><td style="width:210px"><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><strong>Amira Haddad</strong></div></td>
+          <td><ul class="blk"><li><span style="color:var(--warn)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg></span>Currently on leave.</li><li><span style="color:var(--warn)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg></span>Not available until 2026-09-14.</li><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Missing Electrical fault-finding.</li><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Does not hold the Low-voltage work permit certification.</li></ul></td></tr><tr class="out"><td style="width:210px"><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><strong>Freja Nilsen</strong></div></td>
+          <td><ul class="blk"><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Low-voltage work permit certification expired 2026-08-05.</li></ul></td></tr><tr class="out"><td style="width:210px"><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg><strong>Jonas Berg</strong></div></td>
+          <td><ul class="blk"><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Missing Electrical fault-finding.</li><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Does not hold the Low-voltage work permit certification.</li></ul></td></tr><tr class="out"><td style="width:210px"><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg><strong>Mikkel Dahl</strong></div></td>
+          <td><ul class="blk"><li><span style="color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Electrical fault-finding: needs Independent (3), has Assisted (2).</li></ul></td></tr></tbody></table></div></div></div></div>
+  <div class="narrate" style="margin-top:34px">
+    <div class="notice warn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg><span><b>This is the moment worth pausing on.</b>
+      Freja is an electrician. She has fault-finding at level 4, verified, and the best customer-handover score on the
+      team. A human scanning a list of names would have sent her. Her permit lapsed twenty-one days ago, so the system
+      would not &mdash; and it says so in one line instead of letting her arrive on a live site without it.</span></div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ DECISION 2 ============================ -->
+<section class="band">
+  <div class="narrate">
+    <span class="eyebrow">Decision two &mdash; the ranking does the work</span>
+    <h2 style="font-size:30px;margin-top:12px">A quarterly report, same five people</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">Now the folder gets something completely different: a
+      reliability report that needs technical writing, and ideally data analysis. Four people qualify, so the gate
+      steps back and the ranking decides.</p>
+    <p class="lede" style="margin-top:12px;font-size:17px"><strong>And Freja is back in the running.</strong> Her
+      lapsed permit had nothing to do with writing a report, so it never enters the calculation. The system judges
+      each task on its own requirements &mdash; it does not carry a grudge from one job to the next.</p>
+  </div>
+  <div class="wrap" style="margin-top:34px"><div class="app"><div class="app-bar"><span class="tl"><i></i><i></i><i></i></span>
+      <span class="app-url">distribution-of-tasks.vercel.app/tasks/TSK-2042</span></div><div class="app-bd">
+  <div class="eyebrow">TSK-2042 · Reporting</div>
+  <h3 style="font-size:22px;margin-top:8px;font-family:var(--ui);font-weight:680">Quarterly reliability report — Aarhus site</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px">
+    <span class="pill">Normal priority</span><span class="pill">8 h estimated</span>
+    <span class="pill">Due 4 Sep</span><span class="pill">Language: EN</span></div>
+  <div class="card-t" style="margin-bottom:9px">What this task requires</div><div class="tw"><table class="d"><thead><tr><th>Capability</th><th>Requirement</th><th>Necessity</th><th>Weight</th></tr></thead><tbody><tr><td><strong>Technical report writing</strong></td>
+        <td class="mono">Level 3 or above</td>
+        <td><span class="pill bad">Mandatory</span></td>
+        <td class="num subtle">4</td></tr><tr><td><strong>Data analysis</strong></td>
+        <td class="mono">Level 3 or above</td>
+        <td><span class="pill ">Preferred</span></td>
+        <td class="num subtle">3</td></tr></tbody></table></div>
+  <div class="notice ok" style="margin:22px 0 16px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg><span><b>Jonas Berg matched at 90% out of 4 qualified coworkers.</b><span style="display:block;margin-top:4px;opacity:.9">Jonas Berg scored 90%, meeting 2 of 2 listed capabilities, capability fit 100%, verified capabilities 100%.</span></span></div>
+  <div class="card-t" style="margin:22px 0 9px">Ranked shortlist</div><div class="tw"><table class="d"><thead><tr><th style="width:44px">#</th><th>Coworker</th><th style="width:150px">Match</th><th>Why this position in the order</th></tr></thead><tbody><tr class="win">
+              <td class="mono"><strong>1</strong></td>
+              <td><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg><div><strong>Jonas Berg</strong>
+                <div style="margin-top:3px"><span class="pill ok"><span class="dot"></span>Assigned</span></div></div></div></td>
+              <td><div class="score"><span class="meter g"><i style="width:90%"></i></span><b>90%</b></div></td>
+              <td><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill">Capability fit 100%</span><span class="pill">Verified capabilities 100%</span><span class="pill">Workload balance 75%</span></div><details style="margin-top:9px"><summary class="tiny subtle" style="cursor:pointer">Full breakdown</summary><div style="margin-top:9px"><div class="fac"><span class="fac-l">Capability fit</span><span class="fac-v">100%</span><span class="tiny subtle">Clears every required level, above the bar on 2 of 2.</span></div><div class="fac"><span class="fac-l">Verified capabilities</span><span class="fac-v">100%</span><span class="tiny subtle">1 of 1 required capabilities signed off by a lead.</span></div><div class="fac"><span class="fac-l">Experience</span><span class="fac-v">100%</span><span class="tiny subtle">7 years average in the required capabilities.</span></div><div class="fac"><span class="fac-l">Capacity headroom</span><span class="fac-v">47%</span><span class="tiny subtle">14 h of 30 h still free after this task.</span></div><div class="fac"><span class="fac-l">Workload balance</span><span class="fac-v">75%</span><span class="tiny subtle">1 open task; busiest on the shortlist has 4.</span></div><div class="fac"><span class="fac-l">Deadline feasibility</span><span class="fac-v">100%</span><span class="tiny subtle">About 22 free hours before the deadline against a 8 h estimate.</span></div><div class="fac"><span class="fac-l">Position &amp; department fit</span><span class="fac-v">100%</span><span class="tiny subtle">Holds the position Reliability Data Engineer.</span></div></div></details></td></tr><tr class="">
+              <td class="mono"><strong>2</strong></td>
+              <td><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg><div><strong>Mikkel Dahl</strong>
+                </div></div></td>
+              <td><div class="score"><span class="meter "><i style="width:61%"></i></span><b>61%</b></div></td>
+              <td><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill">Capability fit 67%</span><span class="pill">Verified capabilities 100%</span><span class="pill">Experience 80%</span></div><details style="margin-top:9px"><summary class="tiny subtle" style="cursor:pointer">Full breakdown</summary><div style="margin-top:9px"><div class="fac"><span class="fac-l">Capability fit</span><span class="fac-v">67%</span><span class="tiny subtle">Clears every required level, above the bar on 1 of 2.</span></div><div class="fac"><span class="fac-l">Verified capabilities</span><span class="fac-v">100%</span><span class="tiny subtle">1 of 1 required capabilities signed off by a lead.</span></div><div class="fac"><span class="fac-l">Experience</span><span class="fac-v">80%</span><span class="tiny subtle">4 years average in the required capabilities.</span></div><div class="fac"><span class="fac-l">Capacity headroom</span><span class="fac-v">19%</span><span class="tiny subtle">7 h of 37 h still free after this task.</span></div><div class="fac"><span class="fac-l">Workload balance</span><span class="fac-v">0%</span><span class="tiny subtle">4 open tasks; busiest on the shortlist has 4.</span></div><div class="fac"><span class="fac-l">Deadline feasibility</span><span class="fac-v">100%</span><span class="tiny subtle">About 15 free hours before the deadline against a 8 h estimate.</span></div><div class="fac"><span class="fac-l">Position &amp; department fit</span><span class="fac-v">100%</span><span class="tiny subtle">Holds the position Automation Engineer.</span></div></div></details></td></tr><tr class="">
+              <td class="mono"><strong>3</strong></td>
+              <td><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg><div><strong>Sofie Lindgren</strong>
+                </div></div></td>
+              <td><div class="score"><span class="meter "><i style="width:55%"></i></span><b>55%</b></div></td>
+              <td><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill">Capability fit 52%</span><span class="pill">Experience 100%</span><span class="pill">Workload balance 50%</span></div><details style="margin-top:9px"><summary class="tiny subtle" style="cursor:pointer">Full breakdown</summary><div style="margin-top:9px"><div class="fac"><span class="fac-l">Capability fit</span><span class="fac-v">52%</span><span class="tiny subtle">Meets 1 of 2 listed capabilities.</span></div><div class="fac"><span class="fac-l">Verified capabilities</span><span class="fac-v">0%</span><span class="tiny subtle">0 of 1 required capabilities signed off by a lead.</span></div><div class="fac"><span class="fac-l">Experience</span><span class="fac-v">100%</span><span class="tiny subtle">5 years average in the required capabilities.</span></div><div class="fac"><span class="fac-l">Capacity headroom</span><span class="fac-v">46%</span><span class="tiny subtle">17 h of 37 h still free after this task.</span></div><div class="fac"><span class="fac-l">Workload balance</span><span class="fac-v">50%</span><span class="tiny subtle">2 open tasks; busiest on the shortlist has 4.</span></div><div class="fac"><span class="fac-l">Deadline feasibility</span><span class="fac-v">100%</span><span class="tiny subtle">About 25 free hours before the deadline against a 8 h estimate.</span></div><div class="fac"><span class="fac-l">Position &amp; department fit</span><span class="fac-v">100%</span><span class="tiny subtle">Holds the position Senior Electrical Technician.</span></div></div></details></td></tr><tr class="">
+              <td class="mono"><strong>4</strong></td>
+              <td><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><div><strong>Freja Nilsen</strong>
+                </div></div></td>
+              <td><div class="score"><span class="meter "><i style="width:49%"></i></span><b>49%</b></div></td>
+              <td><div style="display:flex;gap:5px;flex-wrap:wrap"><span class="pill">Capability fit 60%</span><span class="pill">Deadline feasibility 100%</span><span class="pill">Experience 60%</span></div><details style="margin-top:9px"><summary class="tiny subtle" style="cursor:pointer">Full breakdown</summary><div style="margin-top:9px"><div class="fac"><span class="fac-l">Capability fit</span><span class="fac-v">60%</span><span class="tiny subtle">Clears every required level, above the bar on 1 of 2.</span></div><div class="fac"><span class="fac-l">Verified capabilities</span><span class="fac-v">0%</span><span class="tiny subtle">0 of 1 required capabilities signed off by a lead.</span></div><div class="fac"><span class="fac-l">Experience</span><span class="fac-v">60%</span><span class="tiny subtle">3 years average in the required capabilities.</span></div><div class="fac"><span class="fac-l">Capacity headroom</span><span class="fac-v">30%</span><span class="tiny subtle">11 h of 37 h still free after this task.</span></div><div class="fac"><span class="fac-l">Workload balance</span><span class="fac-v">25%</span><span class="tiny subtle">3 open tasks; busiest on the shortlist has 4.</span></div><div class="fac"><span class="fac-l">Deadline feasibility</span><span class="fac-v">100%</span><span class="tiny subtle">About 19 free hours before the deadline against a 8 h estimate.</span></div><div class="fac"><span class="fac-l">Position &amp; department fit</span><span class="fac-v">100%</span><span class="tiny subtle">Holds the position Field Service Engineer.</span></div></div></details></td></tr></tbody></table></div>
+  <div class="card-t" style="margin:26px 0 9px">Not considered</div><div class="tw"><table class="d"><thead><tr><th>Coworker</th><th>Why they were not considered</th></tr></thead><tbody><tr class="out"><td style="width:210px"><div class="row" style="gap:9px"><svg class="portrait" style="width:30px;height:30px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg><strong>Amira Haddad</strong></div></td>
+          <td><ul class="blk"><li><span style="color:var(--warn)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg></span>Currently on leave.</li><li><span style="color:var(--warn)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5L22 20H2z"/><path d="M12 10v4.6M12 17.6v.01"/></svg></span>Not available until 2026-09-14.</li></ul></td></tr></tbody></table></div></div></div></div>
+  <div class="narrate" style="margin-top:34px">
+    <div class="notice accent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg><span><b>Jonas wins on merit, not seniority.</b> He is the newest and least-assigned
+      person on the team. He takes this one because he clears both capabilities with room to spare, both are
+      lead-verified, and he is carrying the lightest workload &mdash; not because anyone remembered his name.</span></div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ OWNERSHIP ============================ -->
+<section class="band">
+  <div class="narrate">
+    <span class="eyebrow">Ownership</span>
+    <h2 style="font-size:30px;margin-top:12px">Finished work keeps the name on it</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">Every completed task stays attached to the person who did
+      it, permanently. Six months from now you can still answer who worked on that machine, when, and why they were
+      the one sent &mdash; without asking anyone to remember.</p>
+  </div>
+  <div class="wrap">
+    <div class="kpis">
+      <div class="kpi"><div class="l">Completed this quarter</div><div class="v">15</div><div class="h">Across five coworkers</div></div>
+      <div class="kpi"><div class="l">Assigned today</div><div class="v">2</div><div class="h">Both automatically</div></div>
+      <div class="kpi"><div class="l">Misdirected</div><div class="v" style="color:var(--ok)">0</div><div class="h">Nobody worked outside their qualifications</div></div>
+      <div class="kpi"><div class="l">Admin time per task</div><div class="v">~40<span style="font-size:18px"> s</span></div><div class="h">Describe it once, then nothing</div></div>
+    </div>
+  </div>
+  <div class="wrap"><div class="tl-list"><div class="tl-row">
+      <div class="tl-date">26 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style="background:var(--accent);box-shadow:0 0 0 1px var(--accent-line)"></span></div>
+      <div class="tl-card">
+        <div class="t">Intermittent trip on the packing line feeder</div>
+        <div class="m"><span class="mono subtle">TSK-2041</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Sofie Lindgren</span>
+          <span class="pill accent">Assigned today</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">26 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style="background:var(--accent);box-shadow:0 0 0 1px var(--accent-line)"></span></div>
+      <div class="tl-card">
+        <div class="t">Quarterly reliability report — Aarhus site</div>
+        <div class="m"><span class="mono subtle">TSK-2042</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Jonas Berg</span>
+          <span class="pill accent">Assigned today</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">20 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Customer handover and acceptance test, Køge line 2</div>
+        <div class="m"><span class="mono subtle">TSK-1921</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Freja Nilsen</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">17 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Commission palletiser cell, Vejle</div>
+        <div class="m"><span class="mono subtle">TSK-1915</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg>Mikkel Dahl</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">15 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Downtime analysis, Q2</div>
+        <div class="m"><span class="mono subtle">TSK-1912</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Jonas Berg</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">12 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Replace damaged distribution board, north site</div>
+        <div class="m"><span class="mono subtle">TSK-1908</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Sofie Lindgren</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">9 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Safety circuit proving after guard rebuild</div>
+        <div class="m"><span class="mono subtle">TSK-1902</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg>Mikkel Dahl</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">7 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Rebuild tipper ram assembly</div>
+        <div class="m"><span class="mono subtle">TSK-1898</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Amira Haddad</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">5 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Service visit, packaging hall</div>
+        <div class="m"><span class="mono subtle">TSK-1889</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Freja Nilsen</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">2 Aug 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Sensor data pipeline for bearing telemetry</div>
+        <div class="m"><span class="mono subtle">TSK-1881</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Jonas Berg</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">31 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Emergency isolation after water ingress, Hillerød</div>
+        <div class="m"><span class="mono subtle">TSK-1876</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Sofie Lindgren</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">28 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">PLC migration, line 4</div>
+        <div class="m"><span class="mono subtle">TSK-1868</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-mikkel"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-mikkel)"><rect width="120" height="120" fill="#e6e9ee"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#48525f"/><path d="M48 89l12 16 12-16-12-6z" fill="#353d47"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#cfa079"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#e5b992"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#cfa079"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#cfa079"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#3a2e26"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#2a211b" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#cfa079" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M40 55c1 15 9 23 20 23s19-8 20-23c1 12-2 27-20 27s-21-15-20-27z" fill="#3a2e26" opacity="0.92"/><path d="M53 64q7 5 14 0" stroke="#2a211b" stroke-width="1.4" fill="none" opacity="0.5"/></g></svg>Mikkel Dahl</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">26 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Weld repair, boom section</div>
+        <div class="m"><span class="mono subtle">TSK-1866</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Amira Haddad</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">22 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Fault report, conveyor drive</div>
+        <div class="m"><span class="mono subtle">TSK-1857</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-freja"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-freja)"><rect width="120" height="120" fill="#d9f0ea"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#1c6b63"/><path d="M48 89l12 16 12-16-12-6z" fill="#14514b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#e0b894"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#bd8a2e"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f3d3b5"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#e0b894"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#e0b894"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#d9a441"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#d9a441"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#bd8a2e" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#e0b894" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Freja Nilsen</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">18 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Thermographic survey, main switchroom</div>
+        <div class="m"><span class="mono subtle">TSK-1844</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-sofie"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-sofie)"><rect width="120" height="120" fill="#dbe6fb"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#24406b"/><path d="M48 89l12 16 12-16-12-6z" fill="#1a2f4f"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbab86"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#573719"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#eec5a3"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbab86"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbab86"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#6b4423"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#6b4423"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#573719" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbab86" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Sofie Lindgren</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">15 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Reliability baseline report, all sites</div>
+        <div class="m"><span class="mono subtle">TSK-1839</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-jonas"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-jonas)"><rect width="120" height="120" fill="#e2e8f4"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#3d4b5c"/><path d="M48 89l12 16 12-16-12-6z" fill="#2c3745"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#dbb28c"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#f0cdae"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#dbb28c"/><path d="M38 48c0-16 8-24 22-24s22 8 22 24c-3-9-6-13-9-13-4 0-6 3-13 3s-9-3-13-3c-3 0-6 4-9 13z" fill="#8a6a3f"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#6d5330" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#dbb28c" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/><g fill="none" stroke="#2f3a49" stroke-width="1.9" opacity="0.9"><rect x="45" y="49.5" width="15" height="10" rx="4"/><rect x="60" y="49.5" width="15" height="10" rx="4"/><path d="M60 54h0M39.5 52.5l5.5 1M80.5 52.5l-5.5 1"/></g></g></svg>Jonas Berg</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div><div class="tl-row">
+      <div class="tl-date">11 Jul 2026</div>
+      <div class="tl-spine"><span class="tl-node" style=""></span></div>
+      <div class="tl-card">
+        <div class="t">Hydraulic press overhaul</div>
+        <div class="m"><span class="mono subtle">TSK-1831</span><span class="subtle">·</span>
+          <span class="who"><svg class="portrait" style="width:22px;height:22px;border:0" viewBox="0 0 120 120" role="img" aria-label="Portrait illustration"><defs><clipPath id="c-amira"><circle cx="60" cy="60" r="60"/></clipPath></defs><g clip-path="url(#c-amira)"><rect width="120" height="120" fill="#f6e3e6"/><path d="M12 120c0-22 20-33 48-33s48 11 48 33z" fill="#7a2f3a"/><path d="M48 89l12 16 12-16-12-6z" fill="#5d222b"/><path d="M51 70h18v18c0 5-18 5-18 0z" fill="#b0784d"/><path d="M31 62c0-24 10-38 29-38s29 14 29 38c0 14-3 24-5 30l-8-4c3-9 4-18 4-26 0-16-6-24-20-24s-20 8-20 24c0 8 1 17 4 26l-8 4c-2-6-5-16-5-30z" fill="#171010"/><ellipse cx="60" cy="52" rx="21" ry="24" fill="#c98d5f"/><ellipse cx="39" cy="54" rx="3.5" ry="5" fill="#b0784d"/><ellipse cx="81" cy="54" rx="3.5" ry="5" fill="#b0784d"/><path d="M38 46c2-14 9-22 22-22s20 8 22 22c-4-8-11-11-22-11s-18 3-22 11z" fill="#241a1a"/><path d="M38 46c0-6 1-11 3-15 3 7 10 10 19 10s16-3 19-10c2 4 3 9 3 15-3-9-11-13-22-13s-19 4-22 13z" fill="#241a1a"/><rect x="48" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><rect x="63" y="47" width="9" height="2.2" rx="1.1" fill="#171010" opacity="0.85"/><circle cx="52.5" cy="54" r="2.4" fill="#2a2320"/><circle cx="67.5" cy="54" r="2.4" fill="#2a2320"/><path d="M60 56v6h-3" stroke="#b0784d" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M55 67q5 4 10 0" stroke="#a8654f" stroke-width="1.8" fill="none" stroke-linecap="round"/></g></svg>Amira Haddad</span>
+          <span class="pill ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>Completed</span></div>
+      </div></div></div></div>
+</section>
+
+<div class="wrap"><hr class="rule"></div>
+
+<!-- ============================ CLOSE ============================ -->
+<section class="band">
+  <div class="narrate">
+    <span class="eyebrow">Why it matters</span>
+    <h2 style="font-size:30px;margin-top:12px">The point is not that a computer picks a name</h2>
+    <p class="lede" style="margin-top:14px;font-size:17px">The point is that an unqualified person can never receive
+      a task, and that months later you can still show exactly why a particular job went to a particular person.
+      Distribution stops being someone&rsquo;s morning and becomes a record.</p>
+    <div style="display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:30px">
+      <div><h3 style="font-size:16px;font-family:var(--ui);font-weight:650">Same inputs, same answer</h3>
+        <p class="small muted" style="margin-top:6px">No randomness anywhere. Run this distribution a hundred times and it picks the same person a hundred times, in the same order.</p></div>
+      <div><h3 style="font-size:16px;font-family:var(--ui);font-weight:650">Or it refuses to choose</h3>
+        <p class="small muted" style="margin-top:6px">When two people are genuinely inseparable, a strict folder sends the decision to a human rather than guessing. Refusing is a legitimate outcome.</p></div>
+      <div><h3 style="font-size:16px;font-family:var(--ui);font-weight:650">Work spreads out</h3>
+        <p class="small muted" style="margin-top:6px">Workload balance is a ranking factor, so the strongest person does not quietly absorb every job in the queue.</p></div>
+      <div><h3 style="font-size:16px;font-family:var(--ui);font-weight:650">Overrides are allowed &mdash; and logged</h3>
+        <p class="small muted" style="margin-top:6px">An admin can assign past a failed requirement, but only by writing down why. That reason is kept next to their name.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="narrate" style="text-align:center">
+    <p class="small subtle">Every score, rejection reason and ranking on this page is real output from the
+      matching engine, generated by running these five profiles and these two tasks through it &mdash; not written by hand.</p>
+    <p class="tiny subtle" style="margin-top:10px">The people are fictional and the portraits are illustrations.
+      Demonstration data for presentation purposes.</p>
+  </div>
+</footer>
+</main>
+
+</body>
+</html>
