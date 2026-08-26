@@ -41,9 +41,6 @@ function quantise(score: number): number {
   return Math.round(score * f) / f;
 }
 
-function pct(n: number): string {
-  return `${Math.round(n * 100)}%`;
-}
 
 /**
  * The deterministic ordering used for eligible candidates.

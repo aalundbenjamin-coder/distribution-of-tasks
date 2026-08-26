@@ -1,0 +1,1036 @@
+{
+  "locale": "en",
+  "generatedFor": "2026-08-26T09:00:00.000Z",
+  "taskA": {
+    "task": {
+      "taskId": "task-a",
+      "reference": "TSK-2041",
+      "title": "Intermittent trip on the packing line feeder",
+      "priority": "HIGH",
+      "estimatedHours": 6,
+      "dueAt": "2026-08-28T15:00:00.000Z",
+      "requiredPositionId": null,
+      "requiredPositionTitle": null,
+      "requiredLanguages": [
+        "da"
+      ],
+      "requiredDepartment": "",
+      "requirements": [
+        {
+          "skillId": "fault-finding",
+          "skillName": "Electrical fault-finding",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "MANDATORY",
+          "weight": 5
+        },
+        {
+          "skillId": "lv-permit",
+          "skillName": "Low-voltage work permit",
+          "skillKind": "CERTIFICATION",
+          "minLevel": 5,
+          "necessity": "MANDATORY",
+          "weight": 5
+        },
+        {
+          "skillId": "customer-handover",
+          "skillName": "Customer handover",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "PREFERRED",
+          "weight": 2
+        }
+      ]
+    },
+    "result": {
+      "outcome": "ASSIGNED",
+      "summary": "Sofie Lindgren matched at 80% out of 1 qualified coworker.",
+      "candidates": [
+        {
+          "coworkerId": "sofie",
+          "fullName": "Sofie Lindgren",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.796264,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Capability fit",
+              "value": 0.986607142857143,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Clears every required level, above the bar on 3 of 3."
+            },
+            {
+              "key": "verification",
+              "label": "Verified capabilities",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "2 of 2 required capabilities signed off by a lead."
+            },
+            {
+              "key": "experience",
+              "label": "Experience",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "7.7 years average in the required capabilities."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Capacity headroom",
+              "value": 0.5135135135135135,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "19 h of 37 h still free after this task."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Workload balance",
+              "value": 0,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "2 open tasks; busiest on the shortlist has 2."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Deadline feasibility",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "About 11.3 free hours before the deadline against a 6 h estimate."
+            },
+            {
+              "key": "contextFit",
+              "label": "Position & department fit",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Holds the position Senior Electrical Technician."
+            }
+          ],
+          "rank": 1,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Electrical fault-finding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Level 5 (+2), verified"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "Low-voltage work permit",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Valid until 30 Jun 2027"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Customer handover",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Level 4 (+1), verified"
+            }
+          ],
+          "openTaskCount": 2,
+          "committedHours": 12,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "amira",
+          "fullName": "Amira Haddad",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "NOT_AVAILABLE",
+              "message": "Currently on leave."
+            },
+            {
+              "code": "OUTSIDE_AVAILABILITY_WINDOW",
+              "message": "Not available until 14 Sept 2026."
+            },
+            {
+              "code": "MISSING_SKILL",
+              "message": "Missing Electrical fault-finding.",
+              "skillId": "fault-finding"
+            },
+            {
+              "code": "CERTIFICATION_MISSING",
+              "message": "Does not hold the Low-voltage work permit certification.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Electrical fault-finding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "Low-voltage work permit",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Certification not held"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Customer handover",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 0,
+          "committedHours": 0,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "freja",
+          "fullName": "Freja Nilsen",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "CERTIFICATION_EXPIRED",
+              "message": "Low-voltage work permit certification expired 5 Aug 2026.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Electrical fault-finding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Level 4 (+1), verified"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "Low-voltage work permit",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": false,
+              "verified": true,
+              "note": "Expired 5 Aug 2026"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Customer handover",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Level 5 (+2), verified"
+            }
+          ],
+          "openTaskCount": 3,
+          "committedHours": 18,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "jonas",
+          "fullName": "Jonas Berg",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "MISSING_SKILL",
+              "message": "Missing Electrical fault-finding.",
+              "skillId": "fault-finding"
+            },
+            {
+              "code": "CERTIFICATION_MISSING",
+              "message": "Does not hold the Low-voltage work permit certification.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Electrical fault-finding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "Low-voltage work permit",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Certification not held"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Customer handover",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 1,
+          "committedHours": 8,
+          "weeklyCapacityHours": 30
+        },
+        {
+          "coworkerId": "mikkel",
+          "fullName": "Mikkel Dahl",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "SKILL_LEVEL_TOO_LOW",
+              "message": "Electrical fault-finding: needs Independent (3), has Assisted (2).",
+              "skillId": "fault-finding"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Electrical fault-finding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 2,
+              "met": false,
+              "verified": false,
+              "note": "2 of 3 required"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "Low-voltage work permit",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Valid until 1 Mar 2027"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Customer handover",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 4,
+          "committedHours": 22,
+          "weeklyCapacityHours": 37
+        }
+      ],
+      "selected": {
+        "coworkerId": "sofie",
+        "fullName": "Sofie Lindgren",
+        "eligible": true,
+        "blockers": [],
+        "score": 0.796264,
+        "factors": [
+          {
+            "key": "skillFit",
+            "label": "Capability fit",
+            "value": 0.986607142857143,
+            "weight": 0.4,
+            "applicable": true,
+            "detail": "Clears every required level, above the bar on 3 of 3."
+          },
+          {
+            "key": "verification",
+            "label": "Verified capabilities",
+            "value": 1,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "2 of 2 required capabilities signed off by a lead."
+          },
+          {
+            "key": "experience",
+            "label": "Experience",
+            "value": 1,
+            "weight": 0.1,
+            "applicable": true,
+            "detail": "7.7 years average in the required capabilities."
+          },
+          {
+            "key": "capacityHeadroom",
+            "label": "Capacity headroom",
+            "value": 0.5135135135135135,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "19 h of 37 h still free after this task."
+          },
+          {
+            "key": "workloadBalance",
+            "label": "Workload balance",
+            "value": 0,
+            "weight": 0.14,
+            "applicable": true,
+            "detail": "2 open tasks; busiest on the shortlist has 2."
+          },
+          {
+            "key": "deadlineFit",
+            "label": "Deadline feasibility",
+            "value": 1,
+            "weight": 0.07,
+            "applicable": true,
+            "detail": "About 11.3 free hours before the deadline against a 6 h estimate."
+          },
+          {
+            "key": "contextFit",
+            "label": "Position & department fit",
+            "value": 1,
+            "weight": 0.05,
+            "applicable": true,
+            "detail": "Holds the position Senior Electrical Technician."
+          }
+        ],
+        "rank": 1,
+        "requirementFindings": [
+          {
+            "skillId": "fault-finding",
+            "skillName": "Electrical fault-finding",
+            "necessity": "MANDATORY",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Level 5 (+2), verified"
+          },
+          {
+            "skillId": "lv-permit",
+            "skillName": "Low-voltage work permit",
+            "necessity": "MANDATORY",
+            "required": 1,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Valid until 30 Jun 2027"
+          },
+          {
+            "skillId": "customer-handover",
+            "skillName": "Customer handover",
+            "necessity": "PREFERRED",
+            "required": 3,
+            "held": 4,
+            "met": true,
+            "verified": true,
+            "note": "Level 4 (+1), verified"
+          }
+        ],
+        "openTaskCount": 2,
+        "committedHours": 12,
+        "weeklyCapacityHours": 37
+      },
+      "tiedCandidates": [],
+      "autoAssignable": true,
+      "eligibleCount": 1,
+      "candidateCount": 5,
+      "policy": {
+        "routingMode": "AUTO_ASSIGN",
+        "tieBreak": "BALANCED_LOAD",
+        "tieEpsilon": 0.02,
+        "ambiguityPolicy": "AUTO",
+        "minimumScore": 0.5
+      },
+      "engineVersion": "1.0.0",
+      "rationale": "Sofie Lindgren scored 80%, meeting 3 of 3 listed capabilities, capability fit 99%, verified capabilities 100%."
+    }
+  },
+  "taskB": {
+    "task": {
+      "taskId": "task-b",
+      "reference": "TSK-2042",
+      "title": "Quarterly reliability report — Aarhus site",
+      "priority": "NORMAL",
+      "estimatedHours": 8,
+      "dueAt": "2026-09-04T15:00:00.000Z",
+      "requiredPositionId": null,
+      "requiredPositionTitle": null,
+      "requiredLanguages": [
+        "en"
+      ],
+      "requiredDepartment": "",
+      "requirements": [
+        {
+          "skillId": "report-writing",
+          "skillName": "Technical report writing",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "MANDATORY",
+          "weight": 4
+        },
+        {
+          "skillId": "data-analysis",
+          "skillName": "Data analysis",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "PREFERRED",
+          "weight": 3
+        }
+      ]
+    },
+    "result": {
+      "outcome": "ASSIGNED",
+      "summary": "Jonas Berg matched at 90% out of 4 qualified coworkers.",
+      "candidates": [
+        {
+          "coworkerId": "jonas",
+          "fullName": "Jonas Berg",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.901,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Capability fit",
+              "value": 1,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Clears every required level, above the bar on 2 of 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verified capabilities",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "1 of 1 required capabilities signed off by a lead."
+            },
+            {
+              "key": "experience",
+              "label": "Experience",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "7 years average in the required capabilities."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Capacity headroom",
+              "value": 0.4666666666666667,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "14 h of 30 h still free after this task."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Workload balance",
+              "value": 0.75,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "1 open task; busiest on the shortlist has 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Deadline feasibility",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "About 22 free hours before the deadline against a 8 h estimate."
+            },
+            {
+              "key": "contextFit",
+              "label": "Position & department fit",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Holds the position Reliability Data Engineer."
+            }
+          ],
+          "rank": 1,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Technical report writing",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Level 5 (+2), verified"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Data analysis",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Level 5 (+2), verified"
+            }
+          ],
+          "openTaskCount": 1,
+          "committedHours": 8,
+          "weeklyCapacityHours": 30
+        },
+        {
+          "coworkerId": "mikkel",
+          "fullName": "Mikkel Dahl",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.60891,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Capability fit",
+              "value": 0.6655172413793103,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Clears every required level, above the bar on 1 of 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verified capabilities",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "1 of 1 required capabilities signed off by a lead."
+            },
+            {
+              "key": "experience",
+              "label": "Experience",
+              "value": 0.8,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "4 years average in the required capabilities."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Capacity headroom",
+              "value": 0.1891891891891892,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "7 h of 37 h still free after this task."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Workload balance",
+              "value": 0,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "4 open tasks; busiest on the shortlist has 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Deadline feasibility",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "About 15 free hours before the deadline against a 8 h estimate."
+            },
+            {
+              "key": "contextFit",
+              "label": "Position & department fit",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Holds the position Automation Engineer."
+            }
+          ],
+          "rank": 2,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Technical report writing",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Level 4 (+1), verified"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Data analysis",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 2,
+              "met": false,
+              "verified": false,
+              "note": "2 of 3 required"
+            }
+          ],
+          "openTaskCount": 4,
+          "committedHours": 22,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "sofie",
+          "fullName": "Sofie Lindgren",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.552032,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Capability fit",
+              "value": 0.5172413793103449,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Meets 1 of 2 listed capabilities."
+            },
+            {
+              "key": "verification",
+              "label": "Verified capabilities",
+              "value": 0,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "0 of 1 required capabilities signed off by a lead."
+            },
+            {
+              "key": "experience",
+              "label": "Experience",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "5 years average in the required capabilities."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Capacity headroom",
+              "value": 0.4594594594594595,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "17 h of 37 h still free after this task."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Workload balance",
+              "value": 0.5,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "2 open tasks; busiest on the shortlist has 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Deadline feasibility",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "About 25 free hours before the deadline against a 8 h estimate."
+            },
+            {
+              "key": "contextFit",
+              "label": "Position & department fit",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Holds the position Senior Electrical Technician."
+            }
+          ],
+          "rank": 3,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Technical report writing",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 3,
+              "met": true,
+              "verified": false,
+              "note": "Level 3"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Data analysis",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 2,
+          "committedHours": 12,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "freja",
+          "fullName": "Freja Nilsen",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.492055,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Capability fit",
+              "value": 0.603448275862069,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Clears every required level, above the bar on 1 of 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verified capabilities",
+              "value": 0,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "0 of 1 required capabilities signed off by a lead."
+            },
+            {
+              "key": "experience",
+              "label": "Experience",
+              "value": 0.6,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "3 years average in the required capabilities."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Capacity headroom",
+              "value": 0.2972972972972973,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "11 h of 37 h still free after this task."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Workload balance",
+              "value": 0.25,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "3 open tasks; busiest on the shortlist has 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Deadline feasibility",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "About 19 free hours before the deadline against a 8 h estimate."
+            },
+            {
+              "key": "contextFit",
+              "label": "Position & department fit",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Holds the position Field Service Engineer."
+            }
+          ],
+          "rank": 4,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Technical report writing",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": false,
+              "note": "Level 4 (+1)"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Data analysis",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 3,
+          "committedHours": 18,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "amira",
+          "fullName": "Amira Haddad",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "NOT_AVAILABLE",
+              "message": "Currently on leave."
+            },
+            {
+              "code": "OUTSIDE_AVAILABILITY_WINDOW",
+              "message": "Not available until 14 Sept 2026."
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Technical report writing",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 3,
+              "met": true,
+              "verified": false,
+              "note": "Level 3"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Data analysis",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Capability not registered"
+            }
+          ],
+          "openTaskCount": 0,
+          "committedHours": 0,
+          "weeklyCapacityHours": 37
+        }
+      ],
+      "selected": {
+        "coworkerId": "jonas",
+        "fullName": "Jonas Berg",
+        "eligible": true,
+        "blockers": [],
+        "score": 0.901,
+        "factors": [
+          {
+            "key": "skillFit",
+            "label": "Capability fit",
+            "value": 1,
+            "weight": 0.4,
+            "applicable": true,
+            "detail": "Clears every required level, above the bar on 2 of 2."
+          },
+          {
+            "key": "verification",
+            "label": "Verified capabilities",
+            "value": 1,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "1 of 1 required capabilities signed off by a lead."
+          },
+          {
+            "key": "experience",
+            "label": "Experience",
+            "value": 1,
+            "weight": 0.1,
+            "applicable": true,
+            "detail": "7 years average in the required capabilities."
+          },
+          {
+            "key": "capacityHeadroom",
+            "label": "Capacity headroom",
+            "value": 0.4666666666666667,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "14 h of 30 h still free after this task."
+          },
+          {
+            "key": "workloadBalance",
+            "label": "Workload balance",
+            "value": 0.75,
+            "weight": 0.14,
+            "applicable": true,
+            "detail": "1 open task; busiest on the shortlist has 4."
+          },
+          {
+            "key": "deadlineFit",
+            "label": "Deadline feasibility",
+            "value": 1,
+            "weight": 0.07,
+            "applicable": true,
+            "detail": "About 22 free hours before the deadline against a 8 h estimate."
+          },
+          {
+            "key": "contextFit",
+            "label": "Position & department fit",
+            "value": 1,
+            "weight": 0.05,
+            "applicable": true,
+            "detail": "Holds the position Reliability Data Engineer."
+          }
+        ],
+        "rank": 1,
+        "requirementFindings": [
+          {
+            "skillId": "report-writing",
+            "skillName": "Technical report writing",
+            "necessity": "MANDATORY",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Level 5 (+2), verified"
+          },
+          {
+            "skillId": "data-analysis",
+            "skillName": "Data analysis",
+            "necessity": "PREFERRED",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Level 5 (+2), verified"
+          }
+        ],
+        "openTaskCount": 1,
+        "committedHours": 8,
+        "weeklyCapacityHours": 30
+      },
+      "tiedCandidates": [],
+      "autoAssignable": true,
+      "eligibleCount": 4,
+      "candidateCount": 5,
+      "policy": {
+        "routingMode": "AUTO_ASSIGN",
+        "tieBreak": "BALANCED_LOAD",
+        "tieEpsilon": 0.02,
+        "ambiguityPolicy": "AUTO",
+        "minimumScore": 0.5
+      },
+      "engineVersion": "1.0.0",
+      "rationale": "Jonas Berg scored 90%, meeting 2 of 2 listed capabilities, capability fit 100%, verified capabilities 100%."
+    }
+  }
+}

@@ -16,7 +16,8 @@
     "db:reset": "prisma migrate reset --force --skip-generate && tsx prisma/seed.ts",
     "setup": "prisma generate && prisma migrate deploy && tsx prisma/seed.ts",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "build:presentation": "tsx scripts/presentation/scenario.ts da > scripts/presentation/engine-da.json && tsx scripts/presentation/scenario.ts en > scripts/presentation/engine-en.json && python3 scripts/presentation/build.py"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

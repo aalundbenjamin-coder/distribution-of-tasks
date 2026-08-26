@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       // renders without a database — useful while the deployment is still being
       // wired up. The rewrite is only here to drop the .html from the URL.
       { source: '/presentation', destination: '/presentation.html' },
+      { source: '/presentation/en', destination: '/presentation-en.html' },
     ];
   },
 };

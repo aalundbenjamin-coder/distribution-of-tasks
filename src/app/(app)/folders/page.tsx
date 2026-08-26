@@ -9,7 +9,7 @@ import {
 } from '@/components/ui';
 import { FolderIcon, PlusIcon, ScaleIcon } from '@/components/icons';
 import type { TieBreak } from '@/lib/domain/enums';
-import { fill, getTranslations } from '@/lib/i18n';
+import { getTranslations } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Folders' };
 export const dynamic = 'force-dynamic';

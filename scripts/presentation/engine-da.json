@@ -1,0 +1,1036 @@
+{
+  "locale": "da",
+  "generatedFor": "2026-08-26T09:00:00.000Z",
+  "taskA": {
+    "task": {
+      "taskId": "task-a",
+      "reference": "TSK-2041",
+      "title": "Uregelmæssigt udfald på pakkelinjens indfødning",
+      "priority": "HIGH",
+      "estimatedHours": 6,
+      "dueAt": "2026-08-28T15:00:00.000Z",
+      "requiredPositionId": null,
+      "requiredPositionTitle": null,
+      "requiredLanguages": [
+        "da"
+      ],
+      "requiredDepartment": "",
+      "requirements": [
+        {
+          "skillId": "fault-finding",
+          "skillName": "Elektrisk fejlfinding",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "MANDATORY",
+          "weight": 5
+        },
+        {
+          "skillId": "lv-permit",
+          "skillName": "L-AUS-bevis",
+          "skillKind": "CERTIFICATION",
+          "minLevel": 5,
+          "necessity": "MANDATORY",
+          "weight": 5
+        },
+        {
+          "skillId": "customer-handover",
+          "skillName": "Kundeoverdragelse",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "PREFERRED",
+          "weight": 2
+        }
+      ]
+    },
+    "result": {
+      "outcome": "ASSIGNED",
+      "summary": "Sofie Lindgren matchede med 80% ud af 1 kvalificeret medarbejder.",
+      "candidates": [
+        {
+          "coworkerId": "sofie",
+          "fullName": "Sofie Lindgren",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.796264,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Kompetencematch",
+              "value": 0.986607142857143,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Opfylder alle krævede niveauer og ligger over kravet på 3 af 3."
+            },
+            {
+              "key": "verification",
+              "label": "Verificerede kompetencer",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "2 af 2 krævede kompetencer er godkendt af en leder."
+            },
+            {
+              "key": "experience",
+              "label": "Erfaring",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "7,7 års erfaring i gennemsnit inden for de krævede kompetencer."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Ledig kapacitet",
+              "value": 0.5135135135135135,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "19 t af 37 t er stadig ledige efter denne opgave."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Fordeling af arbejdsbyrde",
+              "value": 0,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "2 åbne opgaver; den travleste på listen har 2."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Tid nok til fristen",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "Cirka 11,3 ledige timer inden fristen mod et estimat på 6 t."
+            },
+            {
+              "key": "contextFit",
+              "label": "Stilling og afdeling",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Har stillingen Erfaren eltekniker."
+            }
+          ],
+          "rank": 1,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Elektrisk fejlfinding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 5 (+2), verificeret"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "L-AUS-bevis",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Gyldigt til 30. juni 2027"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Kundeoverdragelse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 4 (+1), verificeret"
+            }
+          ],
+          "openTaskCount": 2,
+          "committedHours": 12,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "amira",
+          "fullName": "Amira Haddad",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "NOT_AVAILABLE",
+              "message": "Er på orlov."
+            },
+            {
+              "code": "OUTSIDE_AVAILABILITY_WINDOW",
+              "message": "Er først til rådighed fra den 14. september 2026."
+            },
+            {
+              "code": "MISSING_SKILL",
+              "message": "Mangler kompetencen Elektrisk fejlfinding.",
+              "skillId": "fault-finding"
+            },
+            {
+              "code": "CERTIFICATION_MISSING",
+              "message": "Har ikke certifikatet L-AUS-bevis.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Elektrisk fejlfinding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "L-AUS-bevis",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Certifikat ikke opnået"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Kundeoverdragelse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 0,
+          "committedHours": 0,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "freja",
+          "fullName": "Freja Nilsen",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "CERTIFICATION_EXPIRED",
+              "message": "Certifikatet L-AUS-bevis udløb den 5. august 2026.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Elektrisk fejlfinding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 4 (+1), verificeret"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "L-AUS-bevis",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": false,
+              "verified": true,
+              "note": "Udløbet 5. august 2026"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Kundeoverdragelse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 5 (+2), verificeret"
+            }
+          ],
+          "openTaskCount": 3,
+          "committedHours": 18,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "jonas",
+          "fullName": "Jonas Berg",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "MISSING_SKILL",
+              "message": "Mangler kompetencen Elektrisk fejlfinding.",
+              "skillId": "fault-finding"
+            },
+            {
+              "code": "CERTIFICATION_MISSING",
+              "message": "Har ikke certifikatet L-AUS-bevis.",
+              "skillId": "lv-permit"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Elektrisk fejlfinding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "L-AUS-bevis",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Certifikat ikke opnået"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Kundeoverdragelse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 1,
+          "committedHours": 8,
+          "weeklyCapacityHours": 30
+        },
+        {
+          "coworkerId": "mikkel",
+          "fullName": "Mikkel Dahl",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "SKILL_LEVEL_TOO_LOW",
+              "message": "Elektrisk fejlfinding: kræver Selvstændig (3), har Med støtte (2).",
+              "skillId": "fault-finding"
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "fault-finding",
+              "skillName": "Elektrisk fejlfinding",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 2,
+              "met": false,
+              "verified": false,
+              "note": "2 af de krævede 3"
+            },
+            {
+              "skillId": "lv-permit",
+              "skillName": "L-AUS-bevis",
+              "necessity": "MANDATORY",
+              "required": 1,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Gyldigt til 1. marts 2027"
+            },
+            {
+              "skillId": "customer-handover",
+              "skillName": "Kundeoverdragelse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 4,
+          "committedHours": 22,
+          "weeklyCapacityHours": 37
+        }
+      ],
+      "selected": {
+        "coworkerId": "sofie",
+        "fullName": "Sofie Lindgren",
+        "eligible": true,
+        "blockers": [],
+        "score": 0.796264,
+        "factors": [
+          {
+            "key": "skillFit",
+            "label": "Kompetencematch",
+            "value": 0.986607142857143,
+            "weight": 0.4,
+            "applicable": true,
+            "detail": "Opfylder alle krævede niveauer og ligger over kravet på 3 af 3."
+          },
+          {
+            "key": "verification",
+            "label": "Verificerede kompetencer",
+            "value": 1,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "2 af 2 krævede kompetencer er godkendt af en leder."
+          },
+          {
+            "key": "experience",
+            "label": "Erfaring",
+            "value": 1,
+            "weight": 0.1,
+            "applicable": true,
+            "detail": "7,7 års erfaring i gennemsnit inden for de krævede kompetencer."
+          },
+          {
+            "key": "capacityHeadroom",
+            "label": "Ledig kapacitet",
+            "value": 0.5135135135135135,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "19 t af 37 t er stadig ledige efter denne opgave."
+          },
+          {
+            "key": "workloadBalance",
+            "label": "Fordeling af arbejdsbyrde",
+            "value": 0,
+            "weight": 0.14,
+            "applicable": true,
+            "detail": "2 åbne opgaver; den travleste på listen har 2."
+          },
+          {
+            "key": "deadlineFit",
+            "label": "Tid nok til fristen",
+            "value": 1,
+            "weight": 0.07,
+            "applicable": true,
+            "detail": "Cirka 11,3 ledige timer inden fristen mod et estimat på 6 t."
+          },
+          {
+            "key": "contextFit",
+            "label": "Stilling og afdeling",
+            "value": 1,
+            "weight": 0.05,
+            "applicable": true,
+            "detail": "Har stillingen Erfaren eltekniker."
+          }
+        ],
+        "rank": 1,
+        "requirementFindings": [
+          {
+            "skillId": "fault-finding",
+            "skillName": "Elektrisk fejlfinding",
+            "necessity": "MANDATORY",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Niveau 5 (+2), verificeret"
+          },
+          {
+            "skillId": "lv-permit",
+            "skillName": "L-AUS-bevis",
+            "necessity": "MANDATORY",
+            "required": 1,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Gyldigt til 30. juni 2027"
+          },
+          {
+            "skillId": "customer-handover",
+            "skillName": "Kundeoverdragelse",
+            "necessity": "PREFERRED",
+            "required": 3,
+            "held": 4,
+            "met": true,
+            "verified": true,
+            "note": "Niveau 4 (+1), verificeret"
+          }
+        ],
+        "openTaskCount": 2,
+        "committedHours": 12,
+        "weeklyCapacityHours": 37
+      },
+      "tiedCandidates": [],
+      "autoAssignable": true,
+      "eligibleCount": 1,
+      "candidateCount": 5,
+      "policy": {
+        "routingMode": "AUTO_ASSIGN",
+        "tieBreak": "BALANCED_LOAD",
+        "tieEpsilon": 0.02,
+        "ambiguityPolicy": "AUTO",
+        "minimumScore": 0.5
+      },
+      "engineVersion": "1.0.0",
+      "rationale": "Sofie Lindgren fik 80% og opfylder 3 af 3 angivne kompetencer: kompetencematch 99%, verificerede kompetencer 100%."
+    }
+  },
+  "taskB": {
+    "task": {
+      "taskId": "task-b",
+      "reference": "TSK-2042",
+      "title": "Kvartalsrapport om driftssikkerhed — Aarhus",
+      "priority": "NORMAL",
+      "estimatedHours": 8,
+      "dueAt": "2026-09-04T15:00:00.000Z",
+      "requiredPositionId": null,
+      "requiredPositionTitle": null,
+      "requiredLanguages": [
+        "en"
+      ],
+      "requiredDepartment": "",
+      "requirements": [
+        {
+          "skillId": "report-writing",
+          "skillName": "Teknisk rapportskrivning",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "MANDATORY",
+          "weight": 4
+        },
+        {
+          "skillId": "data-analysis",
+          "skillName": "Dataanalyse",
+          "skillKind": "GRADED",
+          "minLevel": 3,
+          "necessity": "PREFERRED",
+          "weight": 3
+        }
+      ]
+    },
+    "result": {
+      "outcome": "ASSIGNED",
+      "summary": "Jonas Berg matchede med 90% ud af 4 kvalificerede medarbejdere.",
+      "candidates": [
+        {
+          "coworkerId": "jonas",
+          "fullName": "Jonas Berg",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.901,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Kompetencematch",
+              "value": 1,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Opfylder alle krævede niveauer og ligger over kravet på 2 af 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verificerede kompetencer",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "1 af 1 krævede kompetencer er godkendt af en leder."
+            },
+            {
+              "key": "experience",
+              "label": "Erfaring",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "7 års erfaring i gennemsnit inden for de krævede kompetencer."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Ledig kapacitet",
+              "value": 0.4666666666666667,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "14 t af 30 t er stadig ledige efter denne opgave."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Fordeling af arbejdsbyrde",
+              "value": 0.75,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "1 åben opgave; den travleste på listen har 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Tid nok til fristen",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "Cirka 22 ledige timer inden fristen mod et estimat på 8 t."
+            },
+            {
+              "key": "contextFit",
+              "label": "Stilling og afdeling",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Har stillingen Dataingeniør, driftssikkerhed."
+            }
+          ],
+          "rank": 1,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Teknisk rapportskrivning",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 5 (+2), verificeret"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Dataanalyse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 5,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 5 (+2), verificeret"
+            }
+          ],
+          "openTaskCount": 1,
+          "committedHours": 8,
+          "weeklyCapacityHours": 30
+        },
+        {
+          "coworkerId": "mikkel",
+          "fullName": "Mikkel Dahl",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.60891,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Kompetencematch",
+              "value": 0.6655172413793103,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Opfylder alle krævede niveauer og ligger over kravet på 1 af 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verificerede kompetencer",
+              "value": 1,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "1 af 1 krævede kompetencer er godkendt af en leder."
+            },
+            {
+              "key": "experience",
+              "label": "Erfaring",
+              "value": 0.8,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "4 års erfaring i gennemsnit inden for de krævede kompetencer."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Ledig kapacitet",
+              "value": 0.1891891891891892,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "7 t af 37 t er stadig ledige efter denne opgave."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Fordeling af arbejdsbyrde",
+              "value": 0,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "4 åbne opgaver; den travleste på listen har 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Tid nok til fristen",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "Cirka 15 ledige timer inden fristen mod et estimat på 8 t."
+            },
+            {
+              "key": "contextFit",
+              "label": "Stilling og afdeling",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Har stillingen Automationsingeniør."
+            }
+          ],
+          "rank": 2,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Teknisk rapportskrivning",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": true,
+              "note": "Niveau 4 (+1), verificeret"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Dataanalyse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": 2,
+              "met": false,
+              "verified": false,
+              "note": "2 af de krævede 3"
+            }
+          ],
+          "openTaskCount": 4,
+          "committedHours": 22,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "sofie",
+          "fullName": "Sofie Lindgren",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.552032,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Kompetencematch",
+              "value": 0.5172413793103449,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Opfylder 1 af 2 angivne kompetencer."
+            },
+            {
+              "key": "verification",
+              "label": "Verificerede kompetencer",
+              "value": 0,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "0 af 1 krævede kompetencer er godkendt af en leder."
+            },
+            {
+              "key": "experience",
+              "label": "Erfaring",
+              "value": 1,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "5 års erfaring i gennemsnit inden for de krævede kompetencer."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Ledig kapacitet",
+              "value": 0.4594594594594595,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "17 t af 37 t er stadig ledige efter denne opgave."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Fordeling af arbejdsbyrde",
+              "value": 0.5,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "2 åbne opgaver; den travleste på listen har 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Tid nok til fristen",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "Cirka 25 ledige timer inden fristen mod et estimat på 8 t."
+            },
+            {
+              "key": "contextFit",
+              "label": "Stilling og afdeling",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Har stillingen Erfaren eltekniker."
+            }
+          ],
+          "rank": 3,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Teknisk rapportskrivning",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 3,
+              "met": true,
+              "verified": false,
+              "note": "Niveau 3"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Dataanalyse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 2,
+          "committedHours": 12,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "freja",
+          "fullName": "Freja Nilsen",
+          "eligible": true,
+          "blockers": [],
+          "score": 0.492055,
+          "factors": [
+            {
+              "key": "skillFit",
+              "label": "Kompetencematch",
+              "value": 0.603448275862069,
+              "weight": 0.4,
+              "applicable": true,
+              "detail": "Opfylder alle krævede niveauer og ligger over kravet på 1 af 2."
+            },
+            {
+              "key": "verification",
+              "label": "Verificerede kompetencer",
+              "value": 0,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "0 af 1 krævede kompetencer er godkendt af en leder."
+            },
+            {
+              "key": "experience",
+              "label": "Erfaring",
+              "value": 0.6,
+              "weight": 0.1,
+              "applicable": true,
+              "detail": "3 års erfaring i gennemsnit inden for de krævede kompetencer."
+            },
+            {
+              "key": "capacityHeadroom",
+              "label": "Ledig kapacitet",
+              "value": 0.2972972972972973,
+              "weight": 0.12,
+              "applicable": true,
+              "detail": "11 t af 37 t er stadig ledige efter denne opgave."
+            },
+            {
+              "key": "workloadBalance",
+              "label": "Fordeling af arbejdsbyrde",
+              "value": 0.25,
+              "weight": 0.14,
+              "applicable": true,
+              "detail": "3 åbne opgaver; den travleste på listen har 4."
+            },
+            {
+              "key": "deadlineFit",
+              "label": "Tid nok til fristen",
+              "value": 1,
+              "weight": 0.07,
+              "applicable": true,
+              "detail": "Cirka 19 ledige timer inden fristen mod et estimat på 8 t."
+            },
+            {
+              "key": "contextFit",
+              "label": "Stilling og afdeling",
+              "value": 1,
+              "weight": 0.05,
+              "applicable": true,
+              "detail": "Har stillingen Servicetekniker."
+            }
+          ],
+          "rank": 4,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Teknisk rapportskrivning",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 4,
+              "met": true,
+              "verified": false,
+              "note": "Niveau 4 (+1)"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Dataanalyse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 3,
+          "committedHours": 18,
+          "weeklyCapacityHours": 37
+        },
+        {
+          "coworkerId": "amira",
+          "fullName": "Amira Haddad",
+          "eligible": false,
+          "blockers": [
+            {
+              "code": "NOT_AVAILABLE",
+              "message": "Er på orlov."
+            },
+            {
+              "code": "OUTSIDE_AVAILABILITY_WINDOW",
+              "message": "Er først til rådighed fra den 14. september 2026."
+            }
+          ],
+          "score": 0,
+          "factors": [],
+          "rank": null,
+          "requirementFindings": [
+            {
+              "skillId": "report-writing",
+              "skillName": "Teknisk rapportskrivning",
+              "necessity": "MANDATORY",
+              "required": 3,
+              "held": 3,
+              "met": true,
+              "verified": false,
+              "note": "Niveau 3"
+            },
+            {
+              "skillId": "data-analysis",
+              "skillName": "Dataanalyse",
+              "necessity": "PREFERRED",
+              "required": 3,
+              "held": null,
+              "met": false,
+              "verified": false,
+              "note": "Kompetence ikke registreret"
+            }
+          ],
+          "openTaskCount": 0,
+          "committedHours": 0,
+          "weeklyCapacityHours": 37
+        }
+      ],
+      "selected": {
+        "coworkerId": "jonas",
+        "fullName": "Jonas Berg",
+        "eligible": true,
+        "blockers": [],
+        "score": 0.901,
+        "factors": [
+          {
+            "key": "skillFit",
+            "label": "Kompetencematch",
+            "value": 1,
+            "weight": 0.4,
+            "applicable": true,
+            "detail": "Opfylder alle krævede niveauer og ligger over kravet på 2 af 2."
+          },
+          {
+            "key": "verification",
+            "label": "Verificerede kompetencer",
+            "value": 1,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "1 af 1 krævede kompetencer er godkendt af en leder."
+          },
+          {
+            "key": "experience",
+            "label": "Erfaring",
+            "value": 1,
+            "weight": 0.1,
+            "applicable": true,
+            "detail": "7 års erfaring i gennemsnit inden for de krævede kompetencer."
+          },
+          {
+            "key": "capacityHeadroom",
+            "label": "Ledig kapacitet",
+            "value": 0.4666666666666667,
+            "weight": 0.12,
+            "applicable": true,
+            "detail": "14 t af 30 t er stadig ledige efter denne opgave."
+          },
+          {
+            "key": "workloadBalance",
+            "label": "Fordeling af arbejdsbyrde",
+            "value": 0.75,
+            "weight": 0.14,
+            "applicable": true,
+            "detail": "1 åben opgave; den travleste på listen har 4."
+          },
+          {
+            "key": "deadlineFit",
+            "label": "Tid nok til fristen",
+            "value": 1,
+            "weight": 0.07,
+            "applicable": true,
+            "detail": "Cirka 22 ledige timer inden fristen mod et estimat på 8 t."
+          },
+          {
+            "key": "contextFit",
+            "label": "Stilling og afdeling",
+            "value": 1,
+            "weight": 0.05,
+            "applicable": true,
+            "detail": "Har stillingen Dataingeniør, driftssikkerhed."
+          }
+        ],
+        "rank": 1,
+        "requirementFindings": [
+          {
+            "skillId": "report-writing",
+            "skillName": "Teknisk rapportskrivning",
+            "necessity": "MANDATORY",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Niveau 5 (+2), verificeret"
+          },
+          {
+            "skillId": "data-analysis",
+            "skillName": "Dataanalyse",
+            "necessity": "PREFERRED",
+            "required": 3,
+            "held": 5,
+            "met": true,
+            "verified": true,
+            "note": "Niveau 5 (+2), verificeret"
+          }
+        ],
+        "openTaskCount": 1,
+        "committedHours": 8,
+        "weeklyCapacityHours": 30
+      },
+      "tiedCandidates": [],
+      "autoAssignable": true,
+      "eligibleCount": 4,
+      "candidateCount": 5,
+      "policy": {
+        "routingMode": "AUTO_ASSIGN",
+        "tieBreak": "BALANCED_LOAD",
+        "tieEpsilon": 0.02,
+        "ambiguityPolicy": "AUTO",
+        "minimumScore": 0.5
+      },
+      "engineVersion": "1.0.0",
+      "rationale": "Jonas Berg fik 90% og opfylder 2 af 2 angivne kompetencer: kompetencematch 100%, verificerede kompetencer 100%."
+    }
+  }
+}

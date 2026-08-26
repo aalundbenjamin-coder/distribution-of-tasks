@@ -68,9 +68,6 @@ function round(n: number, dp = 4): number {
   return Math.round(n * f) / f;
 }
 
-function pct(n: number): string {
-  return `${Math.round(n * 100)}%`;
-}
 
 /**
  * Fit for a single requirement, 0-1.

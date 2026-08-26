@@ -17,7 +17,7 @@ import {
 import {
   LocalDateTime,
 } from '@/components/ui-labels';
-import type { AuthProvider, ConsentType } from '@/lib/domain/enums';
+import type { ConsentType } from '@/lib/domain/enums';
 import { getTranslations } from '@/lib/i18n';
 import { emailTransportKind, smsTransportKind } from '@/lib/notifications/transports';
 import { AlertIcon, GoogleIcon, MailIcon, PhoneIcon, ShieldIcon } from '@/components/icons';
@@ -27,7 +27,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const user = await requireUser('/settings');
-  const { locale, t } = await getTranslations();
+  const { t } = await getTranslations();
 
   const [consent, history, identities, sessions] = await Promise.all([
     getConsentState(user.id),

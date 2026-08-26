@@ -11,12 +11,10 @@ import {
   PageHeader,
 } from '@/components/ui';
 import {
-  LocalDateTime,
   RelativeTime,
 } from '@/components/ui-labels';
 import { BellIcon, MailIcon, PhoneIcon, SparkIcon } from '@/components/icons';
 import type { DeliveryStatus } from '@/lib/domain/enums';
-import { fill } from '@/lib/i18n';
 import { MarkAllReadButton } from '@/components/NotificationActions';
 
 export const metadata: Metadata = { title: 'Notifications' };
