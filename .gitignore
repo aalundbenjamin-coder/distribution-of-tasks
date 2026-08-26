@@ -45,3 +45,7 @@ next-env.d.ts
 /prisma/*.db
 /prisma/*.db-journal
 /src/generated
+
+# python bytecode from the presentation generator
+__pycache__/
+*.pyc
