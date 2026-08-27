@@ -63,16 +63,17 @@ if (result.status !== 0) {
 console.info('[migrate] Database schema is up to date.');
 
 /**
- * Optionally put the demo organisation into a deployed database.
+ * Keep the demo organisation present in the deployed database.
  *
- * Set SEED_DEMO=1 on the deployment to show the app with people in it. This is
- * the additive seed, never the destructive one: it fills in whatever is missing
- * and deletes nothing, so accounts that signed up keep their sessions, their
- * consents and their administrator role. It is safe on every build because a
- * second run changes nothing the first one did.
+ * This is the additive seed, never the destructive one: it fills in whatever is
+ * missing and deletes nothing, so accounts that signed up keep their sessions,
+ * their consents and their administrator role, and a build after the first
+ * changes nothing. It runs by default because the deployed site is a demo whose
+ * job is to look populated — set SEED_DEMO=0 on the deployment to switch it
+ * off and empty the roster by hand.
  */
-if (['1', 'true', 'yes'].includes(process.env.SEED_DEMO?.trim().toLowerCase() ?? '')) {
-  console.info('[seed] SEED_DEMO is set — filling in any missing demo data.');
+if (!['0', 'false', 'no'].includes(process.env.SEED_DEMO?.trim().toLowerCase() ?? '')) {
+  console.info('[seed] Filling in any missing demo data (set SEED_DEMO=0 to skip).');
 
   const seeded = spawnSync('npx', ['tsx', 'prisma/seed.ts', '--additive'], {
     stdio: 'inherit',

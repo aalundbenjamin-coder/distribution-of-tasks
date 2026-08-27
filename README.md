@@ -283,11 +283,11 @@ If your provider's pooled URL refuses migration statements, point
 
 #### Seeding a deployed instance
 
-To show the app with people in it, set `SEED_DEMO=1` on the deployment and
-redeploy. The build fills in the demo organisation after migrating, and does
-nothing on later builds because the data is already there.
+Nothing to do: every deployed build fills in the demo organisation after
+migrating, and later builds change nothing because the data is already there.
+Set `SEED_DEMO=0` on the deployment to switch that off.
 
-Or run it yourself against the deployed database:
+You can also run it by hand against the deployed database:
 
 ```bash
 DATABASE_URL="<the deployed connection string>" npm run db:demo
