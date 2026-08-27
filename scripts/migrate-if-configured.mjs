@@ -61,3 +61,34 @@ if (result.status !== 0) {
 }
 
 console.info('[migrate] Database schema is up to date.');
+
+/**
+ * Optionally put the demo organisation into a deployed database.
+ *
+ * Set SEED_DEMO=1 on the deployment to show the app with people in it. This is
+ * the additive seed, never the destructive one: it fills in whatever is missing
+ * and deletes nothing, so accounts that signed up keep their sessions, their
+ * consents and their administrator role. It is safe on every build because a
+ * second run changes nothing the first one did.
+ */
+if (['1', 'true', 'yes'].includes(process.env.SEED_DEMO?.trim().toLowerCase() ?? '')) {
+  console.info('[seed] SEED_DEMO is set — filling in any missing demo data.');
+
+  const seeded = spawnSync('npx', ['tsx', 'prisma/seed.ts', '--additive'], {
+    stdio: 'inherit',
+    env: process.env,
+    shell: process.platform === 'win32',
+  });
+
+  if (seeded.status !== 0) {
+    // The schema is already migrated and the app works without demo rows, so a
+    // failure here is reported rather than allowed to hold back the deployment.
+    console.error(
+      '\n[seed] Could not write the demo data. The build continues: the schema is\n' +
+        '[seed] up to date and the app runs, it just has no demo people in it. Run\n' +
+        '[seed] `npm run db:demo` against the same DATABASE_URL to see the error.\n',
+    );
+  } else {
+    console.info('[seed] Demo data is in place.');
+  }
+}
