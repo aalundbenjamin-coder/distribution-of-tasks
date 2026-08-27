@@ -20,9 +20,17 @@ const db: PrismaClient = prisma;
 
 async function taskByTitleStart(prefix: string) {
   const tasks = await db.task.findMany({ select: { id: true, title: true, reference: true } });
-  const task = tasks.find((t) => t.title.startsWith(prefix));
-  if (!task) throw new Error(`No seeded task starting with "${prefix}". Run npm run db:seed.`);
-  return task;
+  const matches = tasks.filter((t) => t.title.startsWith(prefix));
+  if (matches.length === 0) throw new Error(`No seeded task starting with "${prefix}". Run npm run db:seed.`);
+  // Two matches means the test would silently pick one of them, and a finished
+  // task looks much like a queued one from here.
+  if (matches.length > 1) {
+    throw new Error(
+      `"${prefix}" matches ${matches.length} tasks (${matches.map((t) => t.reference).join(', ')}). ` +
+        'Make the prefix or the seeded titles unambiguous.',
+    );
+  }
+  return matches[0]!;
 }
 
 beforeAll(async () => {

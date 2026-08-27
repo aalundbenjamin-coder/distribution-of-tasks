@@ -50,10 +50,11 @@ a task of your own.
 Other scripts:
 
 ```bash
-npm test           # 89 tests: the gate, the ranking, validation, and end-to-end
+npm test           # 132 tests: the gate, the ranking, validation, and end-to-end
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
 npm run db:seed    # replace all data with the demo organisation (destructive)
+npm run db:demo    # add any missing demo data, deleting nothing (safe anywhere)
 npm run db:migrate # create a migration after changing the schema
 npm run db:deploy  # apply pending migrations (what production runs)
 ```
@@ -282,9 +283,23 @@ If your provider's pooled URL refuses migration statements, point
 
 #### Seeding a deployed instance
 
-Don't, unless you want the demo organisation. `prisma/seed.ts` deletes all
-existing data before writing its own. Sign up instead — the first account is
-made an administrator for exactly this reason.
+To show the app with people in it, run the demo data in **additive** mode
+against the deployed database:
+
+```bash
+DATABASE_URL="<the deployed connection string>" npm run db:demo
+```
+
+That fills in whatever is missing — the thirteen coworkers, their profiles and
+portraits, and the work already behind them — and deletes nothing. Accounts
+that signed up keep their sessions, their consents and their administrator
+role, and running it twice changes nothing the first run did.
+
+`npm run db:seed` is the other one, and it is destructive: it empties every
+table before writing, which on a deployed database also takes the first
+account, and with it the administrator role the bootstrap only ever grants
+once. It refuses to run when it finds an account it did not create; `--force`
+overrides that, and means what it says.
 
 ### Anywhere else
 

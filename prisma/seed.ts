@@ -59,13 +59,37 @@ function daysFromNow(days: number): Date {
   return new Date(Date.now() + days * 86_400_000);
 }
 
+/**
+ * Additive mode leaves every existing row alone and only fills in what is
+ * missing. It exists so the demo roster can be put into a database that real
+ * accounts already live in — a deployed one — without the wipe below taking
+ * those accounts, and their administrator, with it.
+ */
+const ADDITIVE = process.argv.includes('--additive') || process.env.SEED_MODE === 'additive';
+
 async function main() {
-  console.info('Seeding…');
+  console.info(ADDITIVE ? 'Filling in missing demo data…' : 'Seeding…');
+
+  // Every demo account is an @example.com address, so anything else is somebody
+  // real who signed up. Wiping their account also takes the administrator role
+  // with it — the bootstrap only grants it to the first account ever created —
+  // so the wipe stops rather than doing that on the strength of a mistyped
+  // command. `--additive` is the way to fill in demo data next to real people.
+  if (!ADDITIVE) {
+    const real = await prisma.user.count({ where: { NOT: { email: { endsWith: '@example.com' } } } });
+    if (real > 0 && !process.argv.includes('--force')) {
+      throw new Error(
+        `Refusing to wipe: ${real} account(s) here were not created by this script.\n` +
+          'Use `npm run db:demo` to add the demo data without deleting anything,\n' +
+          'or pass --force if you genuinely mean to erase this database.',
+      );
+    }
+  }
 
   // Destructive and deliberate: this removes *all* data, not just rows this
   // script wrote, so that re-running gives an identical starting point. Never
   // point it at a database anyone depends on.
-  await prisma.$transaction([
+  if (!ADDITIVE) await prisma.$transaction([
     prisma.matchCandidate.deleteMany(),
     prisma.assignment.deleteMany(),
     prisma.matchRun.deleteMany(),
@@ -112,21 +136,28 @@ async function main() {
     await Promise.all([
       ...skillSpecs.map(async (spec) => [
         spec.slug,
-        await prisma.skill.create({
-          data: { ...spec, kind: 'GRADED', expires: false, description: null },
+        await prisma.skill.upsert({
+          where: { slug: spec.slug },
+          create: { ...spec, kind: 'GRADED', expires: false, description: null },
+          update: {},
         }),
       ]),
       ...certSpecs.map(async (spec) => [
         spec.slug,
-        await prisma.skill.create({ data: { ...spec, kind: 'CERTIFICATION' } }),
+        await prisma.skill.upsert({
+          where: { slug: spec.slug },
+          create: { ...spec, kind: 'CERTIFICATION' },
+          update: {},
+        }),
       ]),
     ]),
   ) as Record<string, { id: string; name: string }>;
 
   // --- Positions -----------------------------------------------------------
 
-  const seniorTech = await prisma.position.create({
-    data: {
+  const seniorTech = await prisma.position.upsert({
+    where: { slug: 'senior-electrical-technician' },
+    create: {
       slug: 'senior-electrical-technician',
       title: 'Senior Electrical Technician',
       department: 'Field Service',
@@ -141,10 +172,12 @@ async function main() {
         ],
       },
     },
+    update: {},
   });
 
-  const automationEngineer = await prisma.position.create({
-    data: {
+  const automationEngineer = await prisma.position.upsert({
+    where: { slug: 'automation-engineer' },
+    create: {
       slug: 'automation-engineer',
       title: 'Automation Engineer',
       department: 'Automation',
@@ -157,10 +190,12 @@ async function main() {
         ],
       },
     },
+    update: {},
   });
 
-  const workshopTech = await prisma.position.create({
-    data: {
+  const workshopTech = await prisma.position.upsert({
+    where: { slug: 'workshop-technician' },
+    create: {
       slug: 'workshop-technician',
       title: 'Workshop Technician',
       department: 'Workshop',
@@ -173,6 +208,7 @@ async function main() {
         ],
       },
     },
+    update: {},
   });
 
   // --- People --------------------------------------------------------------
@@ -573,8 +609,9 @@ async function main() {
   const created: Record<string, { userId: string; coworkerId?: string }> = {};
 
   for (const person of people) {
-    const user = await prisma.user.create({
-      data: {
+    const user = await prisma.user.upsert({
+    where: { email: person.email },
+    create: {
         email: person.email,
         phone: person.phone ?? null,
         fullName: person.name,
@@ -597,14 +634,16 @@ async function main() {
           ],
         },
       },
-    });
+    update: {},
+  });
 
     created[person.name] = { userId: user.id };
 
     if (person.coworker) {
       const spec = person.coworker;
-      const coworker = await prisma.coworker.create({
-        data: {
+      const coworker = await prisma.coworker.upsert({
+    where: { userId: user.id },
+    create: {
           userId: user.id,
           positionId: spec.positionId,
           department: spec.department,
@@ -631,7 +670,8 @@ async function main() {
             })),
           },
         },
-      });
+    update: {},
+  });
       created[person.name]!.coworkerId = coworker.id;
     }
   }
@@ -640,8 +680,9 @@ async function main() {
 
   // --- Folders -------------------------------------------------------------
 
-  const callouts = await prisma.taskFolder.create({
-    data: {
+  const callouts = await prisma.taskFolder.upsert({
+    where: { slug: 'electrical-callouts' },
+    create: {
       slug: 'electrical-callouts',
       name: 'Electrical callouts',
       description:
@@ -655,10 +696,12 @@ async function main() {
       tieEpsilon: 0.02,
       minimumScore: 0.5,
     },
+    update: {},
   });
 
-  const commissioning = await prisma.taskFolder.create({
-    data: {
+  const commissioning = await prisma.taskFolder.upsert({
+    where: { slug: 'commissioning' },
+    create: {
       slug: 'commissioning',
       name: 'Commissioning',
       description:
@@ -672,10 +715,12 @@ async function main() {
       tieEpsilon: 0.03,
       minimumScore: 0.6,
     },
+    update: {},
   });
 
-  const workshop = await prisma.taskFolder.create({
-    data: {
+  const workshop = await prisma.taskFolder.upsert({
+    where: { slug: 'workshop-jobs' },
+    create: {
       slug: 'workshop-jobs',
       name: 'Workshop jobs',
       description: 'Rebuilds and fabrication. Rotates evenly through the workshop team.',
@@ -688,9 +733,14 @@ async function main() {
       tieEpsilon: 0.02,
       minimumScore: 0.45,
     },
+    update: {},
   });
 
-  await prisma.counter.create({ data: { name: 'task', value: 1921 } });
+  await prisma.counter.upsert({
+    where: { name: 'task' },
+    create: { name: 'task', value: 1921 },
+    update: {},
+  });
 
   // --- Tasks ---------------------------------------------------------------
 
@@ -714,7 +764,7 @@ async function main() {
     { who: 'Freja Nilsen', reference: 'TSK-1921', title: 'Customer handover and acceptance test, Køge line 2', folderId: callouts.id, daysAgo: 7, hours: 5, skill: 'customer-handover', score: 0.94 },
     { who: 'Mikkel Dahl', reference: 'TSK-1915', title: 'Commission palletiser cell, Vejle', folderId: commissioning.id, daysAgo: 10, hours: 16, skill: 'plc-programming', score: 0.97 },
     { who: 'Jonas Berg', reference: 'TSK-1912', title: 'Downtime analysis, Q2', folderId: commissioning.id, daysAgo: 12, hours: 12, skill: 'data-analysis', score: 0.96 },
-    { who: 'Sofie Lindgren', reference: 'TSK-1908', title: 'Replace damaged distribution board, Aalborg depot', folderId: callouts.id, daysAgo: 15, hours: 9, skill: 'electrical-fault-finding', score: 0.95 },
+    { who: 'Sofie Lindgren', reference: 'TSK-1908', title: 'Distribution board replacement, Aalborg depot', folderId: callouts.id, daysAgo: 15, hours: 9, skill: 'electrical-fault-finding', score: 0.95 },
     { who: 'Elif Yılmaz', reference: 'TSK-1906', title: 'Line 2 retune after motor swap', folderId: commissioning.id, daysAgo: 16, hours: 7, skill: 'plc-programming', score: 0.91 },
     { who: 'Mikkel Dahl', reference: 'TSK-1902', title: 'Safety circuit proving after guard rebuild', folderId: commissioning.id, daysAgo: 18, hours: 6, skill: 'safety-systems', score: 0.93 },
     { who: 'Amira Haddad', reference: 'TSK-1898', title: 'Rebuild tipper ram assembly', folderId: workshop.id, daysAgo: 20, hours: 14, skill: 'hydraulics', score: 0.98 },
@@ -738,8 +788,9 @@ async function main() {
     if (!coworkerId) throw new Error(`History references an unknown coworker: ${spec.who}`);
 
     const finished = daysFromNow(-spec.daysAgo);
-    await prisma.task.create({
-      data: {
+    await prisma.task.upsert({
+    where: { reference: spec.reference },
+    create: {
         reference: spec.reference,
         title: spec.title,
         folderId: spec.folderId,
@@ -765,7 +816,8 @@ async function main() {
           },
         },
       },
-    });
+    update: {},
+  });
   }
 
   const taskSpecs = [
@@ -845,8 +897,9 @@ async function main() {
   let reference = 1921;
   for (const spec of taskSpecs) {
     reference += 1;
-    await prisma.task.create({
-      data: {
+    await prisma.task.upsert({
+    where: { reference: `TSK-${reference}` },
+    create: {
         reference: `TSK-${reference}`,
         title: spec.title,
         description: spec.description,
@@ -867,18 +920,42 @@ async function main() {
           })),
         },
       },
-    });
+    update: {},
+  });
   }
-  await prisma.counter.update({ where: { name: 'task' }, data: { value: reference } });
+  const highest = await prisma.task.findFirst({
+    where: { reference: { startsWith: 'TSK-' } },
+    orderBy: { reference: 'desc' },
+    select: { reference: true },
+  });
+  const highestNumber = Number(highest?.reference.replace('TSK-', '') ?? 0);
+  await prisma.counter.update({
+    where: { name: 'task' },
+    data: { value: Math.max(reference, Number.isFinite(highestNumber) ? highestNumber : 0) },
+  });
 
   // --- A product announcement, to show the bell carrying marketing ---------
 
-  const everyone = await prisma.user.findMany({ select: { id: true } });
+  // Notifications carry no natural key, so the announcement is addressed only
+  // to people who have not already been told. Re-running otherwise stacks the
+  // same message up in everyone's bell.
+  const ANNOUNCEMENT = 'New: see exactly why a task went where it did';
+  const alreadyTold = new Set(
+    (
+      await prisma.notification.findMany({
+        where: { title: ANNOUNCEMENT },
+        select: { userId: true },
+      })
+    ).map((n) => n.userId),
+  );
+  const everyone = (await prisma.user.findMany({ select: { id: true } })).filter(
+    (u) => !alreadyTold.has(u.id),
+  );
   await prisma.notification.createMany({
     data: everyone.map((u) => ({
       userId: u.id,
       type: 'PRODUCT_UPDATE',
-      title: 'New: see exactly why a task went where it did',
+      title: ANNOUNCEMENT,
       body:
         'Every task now shows the full shortlist — who qualified, their score factor by factor, and the reason anyone was ruled out. Open any task to see it.',
       link: '/tasks',
