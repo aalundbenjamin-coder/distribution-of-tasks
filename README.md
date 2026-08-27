@@ -50,7 +50,7 @@ a task of your own.
 Other scripts:
 
 ```bash
-npm test           # 143 tests: the gate, the ranking, validation, and end-to-end
+npm test           # 149 tests: the gate, the ranking, validation, and end-to-end
 npm run build      # production build
 npm run typecheck  # tsc --noEmit
 npm run db:seed    # replace all data with the demo organisation (destructive)

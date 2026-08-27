@@ -24,6 +24,7 @@ export interface FolderOption {
   department: string;
   routingMode: string;
   defaultPositionTitle: string | null;
+  subjects: string[];
 }
 
 export interface PositionOption {
@@ -118,7 +119,21 @@ export default function TaskForm({
               required
               autoFocus
               placeholder={t.tasks.titlePlaceholder}
+              list={folder && folder.subjects.length > 0 ? 'task-subjects' : undefined}
             />
+            {folder && folder.subjects.length > 0 && (
+              <>
+                {/* The folder's trade knows its own typical jobs; offering
+                    them as a combobox keeps the field free text while making
+                    "what kind of work is this" a choice, not an essay. */}
+                <datalist id="task-subjects">
+                  {folder.subjects.map((subject) => (
+                    <option key={subject} value={subject} />
+                  ))}
+                </datalist>
+                <span className="hint">{t.tasks.subjectHint}</span>
+              </>
+            )}
           </div>
 
           <div className="field">

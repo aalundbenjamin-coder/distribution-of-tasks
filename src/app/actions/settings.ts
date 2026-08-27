@@ -41,8 +41,9 @@ export async function updateNotificationConsentAction(
     return { ok: false, error: error instanceof AccessError ? error.message : 'Something went wrong.' };
   }
 
-  const current = await getConsentState(actor.id);
-  const context = await requestContext();
+  // Independent reads, one round trip of latency instead of two. On a remote
+  // database each avoidable await is a visible slice of the button's delay.
+  const [current, context] = await Promise.all([getConsentState(actor.id), requestContext()]);
 
   // Only write rows for decisions that actually changed, so the history reads
   // as a list of decisions rather than a list of page saves.
@@ -55,22 +56,25 @@ export async function updateNotificationConsentAction(
     return { ok: true, message: 'Nothing changed.' };
   }
 
-  await recordConsents({
-    userId: actor.id,
-    decisions: changed,
-    source: 'SETTINGS',
-    ipAddress: context.ipAddress,
-    userAgent: context.userAgent,
-  });
-
-  await recordAudit({
-    actorId: actor.id,
-    action: 'consent.updated',
-    entity: 'User',
-    entityId: actor.id,
-    data: { changed },
-    ipAddress: context.ipAddress,
-  });
+  // The audit row is best-effort by contract, so it does not get to hold the
+  // response hostage: the consent write is awaited, the audit write races it.
+  await Promise.all([
+    recordConsents({
+      userId: actor.id,
+      decisions: changed,
+      source: 'SETTINGS',
+      ipAddress: context.ipAddress,
+      userAgent: context.userAgent,
+    }),
+    recordAudit({
+      actorId: actor.id,
+      action: 'consent.updated',
+      entity: 'User',
+      entityId: actor.id,
+      data: { changed },
+      ipAddress: context.ipAddress,
+    }),
+  ]);
 
   revalidatePath('/settings');
 
@@ -180,16 +184,19 @@ export async function confirmPhoneLinkAction(
     return { ok: false, error: verification.error, field: 'code', step: 'code', phone };
   }
 
-  await prisma.user.update({
-    where: { id: actor.id },
-    data: { phone, phoneVerifiedAt: new Date() },
-  });
-
-  await prisma.authIdentity.upsert({
-    where: { provider_providerUserId: { provider: 'PHONE', providerUserId: phone } },
-    create: { userId: actor.id, provider: 'PHONE', providerUserId: phone, label: phone },
-    update: { userId: actor.id, lastUsedAt: new Date() },
-  });
+  // One batched round trip: the phone and the identity land together or not at
+  // all, and the response stops paying for three sequential writes.
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: actor.id },
+      data: { phone, phoneVerifiedAt: new Date() },
+    }),
+    prisma.authIdentity.upsert({
+      where: { provider_providerUserId: { provider: 'PHONE', providerUserId: phone } },
+      create: { userId: actor.id, provider: 'PHONE', providerUserId: phone, label: phone },
+      update: { userId: actor.id, lastUsedAt: new Date() },
+    }),
+  ]);
 
   await recordAudit({
     actorId: actor.id,

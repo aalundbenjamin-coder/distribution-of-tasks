@@ -124,12 +124,55 @@ async function main() {
     { slug: 'report-writing', name: 'Technical report writing', category: 'Service' },
     { slug: 'safety-systems', name: 'Safety systems', category: 'Automation' },
     { slug: 'data-analysis', name: 'Data analysis', category: 'Automation' },
+    // The building trades. Each category is one trade, so the catalogue reads
+    // as a company that does more than one kind of work.
+    { slug: 'residential-wiring', name: 'Residential wiring', category: 'Electrical' },
+    { slug: 'switchboard-assembly', name: 'Switchboard and distribution board work', category: 'Electrical' },
+    { slug: 'ev-charger-mounting', name: 'EV charger installation', category: 'Electrical' },
+    { slug: 'knx-ihc-programming', name: 'KNX / IHC smart building systems', category: 'Electrical' },
+    { slug: 'installation-troubleshooting', name: 'Installation troubleshooting', category: 'Electrical' },
+    { slug: 'masonry-bricklaying', name: 'Bricklaying and blockwork', category: 'Masonry' },
+    { slug: 'masonry-repointing', name: 'Repointing of facades', category: 'Masonry' },
+    { slug: 'rendering-plastering', name: 'Rendering and plastering', category: 'Masonry' },
+    { slug: 'tile-setting', name: 'Tile setting', category: 'Masonry' },
+    { slug: 'roof-construction', name: 'Roof construction and replacement', category: 'Carpentry' },
+    { slug: 'window-door-installation', name: 'Window and door installation', category: 'Carpentry' },
+    { slug: 'drywall-partitioning', name: 'Drywall and partition walls', category: 'Carpentry' },
+    { slug: 'timber-framing', name: 'Timber framing', category: 'Carpentry' },
+    { slug: 'floor-laying', name: 'Floor laying', category: 'Carpentry' },
+    { slug: 'sanitary-installation', name: 'Sanitary installation', category: 'Plumbing & Sewer' },
+    { slug: 'heating-system-service', name: 'Heating system service', category: 'Plumbing & Sewer' },
+    { slug: 'drain-jetting', name: 'High-pressure drain jetting', category: 'Plumbing & Sewer' },
+    { slug: 'drain-cctv-survey', name: 'CCTV drain survey', category: 'Plumbing & Sewer' },
+    { slug: 'interior-painting', name: 'Interior painting', category: 'Painting' },
+    { slug: 'facade-painting', name: 'Facade and exterior painting', category: 'Painting' },
+    { slug: 'spray-painting', name: 'Spray painting', category: 'Painting' },
+    { slug: 'wallpapering', name: 'Wallpapering', category: 'Painting' },
+    { slug: 'surface-filling-skimming', name: 'Surface filling and skimming', category: 'Painting' },
+    { slug: 'cipp-liner-installation', name: 'CIPP liner installation', category: 'Pipe Relining' },
+    { slug: 'point-liner-repair', name: 'Point liner repair', category: 'Pipe Relining' },
+    { slug: 'robotic-cutter-operation', name: 'Robotic cutter operation', category: 'Pipe Relining' },
+    { slug: 'pre-lining-jetting', name: 'Pre-lining cleaning and jetting', category: 'Pipe Relining' },
   ] as const;
 
   const certSpecs = [
     { slug: 'lv-permit', name: 'Low-voltage work permit', category: 'Compliance', expires: true },
     { slug: 'working-at-height', name: 'Working at height', category: 'Compliance', expires: true },
     { slug: 'forklift-licence', name: 'Forklift licence', category: 'Compliance', expires: true },
+    // Trade certifications. The Danish courses several trades share — hot
+    // work, epoxy — exist once, because a certificate belongs to a person,
+    // not to the trade they happened to earn it in.
+    { slug: 'electrical-authorisation', name: 'Electrical installer authorisation (el-autorisation)', category: 'Compliance', expires: false },
+    { slug: 'wet-room-membrane-cert', name: 'Wet-room membrane certificate (vådrumssikring)', category: 'Compliance', expires: false },
+    { slug: 'hot-work-certificate', name: 'Hot-work certificate (varmt arbejde)', category: 'Compliance', expires: true },
+    { slug: 'scaffold-erection-cert', name: 'Scaffold erection course (systemstillads)', category: 'Compliance', expires: false },
+    { slug: 'asbestos-roofing-cert', name: 'Asbestos handling course', category: 'Compliance', expires: false },
+    { slug: 'vvs-authorisation', name: 'Plumbing installer authorisation (VVS-autorisation)', category: 'Compliance', expires: false },
+    { slug: 'kloakmester-authorisation', name: 'Sewer master authorisation (kloakmester)', category: 'Compliance', expires: false },
+    { slug: 'gas-a-certificate', name: 'Gas competence certificate (A-certifikat)', category: 'Compliance', expires: true },
+    { slug: 'epoxy-course', name: 'Epoxy and isocyanate course', category: 'Compliance', expires: false },
+    { slug: 'relining-tv-inspection-cert', name: 'Authorised TV inspection certificate', category: 'Compliance', expires: true },
+    { slug: 'confined-space-training', name: 'Confined space and wells course', category: 'Compliance', expires: false },
   ] as const;
 
   const skills = Object.fromEntries(
@@ -210,6 +253,132 @@ async function main() {
     },
     update: {},
   });
+
+  // ---- The building trades ------------------------------------------------
+
+  const electrician = await prisma.position.upsert({
+    where: { slug: 'electrician' },
+    create: {
+      slug: 'electrician',
+      title: 'Electrician',
+      department: 'Electrical',
+      seniority: 3,
+      description:
+        'Installs, services and troubleshoots electrical installations in homes and commercial buildings, from wiring and distribution boards to EV chargers and smart-home systems.',
+      requirements: {
+        create: [
+          { skillId: skills['residential-wiring']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['installation-troubleshooting']!.id, minLevel: 3, necessity: 'MANDATORY' },
+          { skillId: skills['lv-permit']!.id, minLevel: 5, necessity: 'MANDATORY' },
+          { skillId: skills['ev-charger-mounting']!.id, minLevel: 2, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
+  const bricklayer = await prisma.position.upsert({
+    where: { slug: 'bricklayer' },
+    create: {
+      slug: 'bricklayer',
+      title: 'Bricklayer',
+      department: 'Masonry',
+      seniority: 3,
+      description:
+        'Performs masonry work such as brickwork, repointing, rendering, tiling and bathroom renovation on facades and interiors.',
+      requirements: {
+        create: [
+          { skillId: skills['masonry-bricklaying']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['tile-setting']!.id, minLevel: 3, necessity: 'MANDATORY' },
+          { skillId: skills['wet-room-membrane-cert']!.id, minLevel: 5, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
+  const carpenter = await prisma.position.upsert({
+    where: { slug: 'carpenter' },
+    create: {
+      slug: 'carpenter',
+      title: 'Carpenter',
+      department: 'Carpentry',
+      seniority: 3,
+      description:
+        'Builds and renovates roofs, windows, doors, partition walls, decks and other timber and drywall structures.',
+      requirements: {
+        create: [
+          { skillId: skills['timber-framing']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['window-door-installation']!.id, minLevel: 3, necessity: 'MANDATORY' },
+          { skillId: skills['roof-construction']!.id, minLevel: 3, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
+  const plumberSewer = await prisma.position.upsert({
+    where: { slug: 'plumber-sewer-technician' },
+    create: {
+      slug: 'plumber-sewer-technician',
+      title: 'Plumber & Sewer Technician',
+      department: 'Plumbing & Sewer',
+      seniority: 3,
+      description:
+        'Handles plumbing, heating and sanitary installations plus sewer service work such as drain clearing, jetting and CCTV inspection.',
+      requirements: {
+        create: [
+          { skillId: skills['sanitary-installation']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['vvs-authorisation']!.id, minLevel: 5, necessity: 'MANDATORY' },
+          { skillId: skills['drain-jetting']!.id, minLevel: 3, necessity: 'PREFERRED' },
+          { skillId: skills['kloakmester-authorisation']!.id, minLevel: 5, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
+  const painter = await prisma.position.upsert({
+    where: { slug: 'painter' },
+    create: {
+      slug: 'painter',
+      title: 'Painter',
+      department: 'Painting',
+      seniority: 3,
+      description:
+        'Prepares and paints interior and exterior surfaces, including walls, ceilings, facades, woodwork and wallpapered surfaces.',
+      requirements: {
+        create: [
+          { skillId: skills['interior-painting']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['surface-filling-skimming']!.id, minLevel: 3, necessity: 'MANDATORY' },
+          { skillId: skills['facade-painting']!.id, minLevel: 3, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
+  const reliningTech = await prisma.position.upsert({
+    where: { slug: 'pipe-relining-technician' },
+    create: {
+      slug: 'pipe-relining-technician',
+      title: 'Pipe Relining Technician',
+      department: 'Pipe Relining',
+      seniority: 3,
+      description:
+        'Renovates sewers and drains from the inside — cleaning, lining and reopening pipes without excavation.',
+      requirements: {
+        create: [
+          { skillId: skills['cipp-liner-installation']!.id, minLevel: 4, necessity: 'MANDATORY' },
+          { skillId: skills['pre-lining-jetting']!.id, minLevel: 3, necessity: 'MANDATORY' },
+          { skillId: skills['robotic-cutter-operation']!.id, minLevel: 3, necessity: 'PREFERRED' },
+          { skillId: skills['confined-space-training']!.id, minLevel: 5, necessity: 'PREFERRED' },
+        ],
+      },
+    },
+    update: {},
+  });
+
 
   // --- People --------------------------------------------------------------
 
@@ -604,6 +773,181 @@ async function main() {
         ],
       },
     },
+
+    // ---- One name per building trade ---------------------------------------
+    // Each trade folder needs at least one person the engine can actually
+    // hand work to, or a demo of that folder ends at "no qualified coworker".
+    {
+      name: 'Sara Lindholm',
+      email: 'sara@example.com',
+      phone: '+4520100020',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: electrician.id,
+        department: 'Electrical',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-4),
+        assignmentCount: 21,
+        education: 'Skilled Trade Certificate, Electrician',
+        school: 'TEC — Technical Education Copenhagen',
+        thesis: 'Final apprenticeship project: full smart-home installation with load-managed EV charging',
+        bio: 'Wires a house so the next electrician can read it like a book. The go-to for charger installations.',
+        skills: [
+          { slug: 'residential-wiring', level: 4, verified: true, years: 7 },
+          { slug: 'installation-troubleshooting', level: 4, verified: true, years: 7 },
+          { slug: 'switchboard-assembly', level: 4, verified: true, years: 6 },
+          { slug: 'ev-charger-mounting', level: 5, verified: true, years: 4 },
+          { slug: 'knx-ihc-programming', level: 3, years: 3 },
+          { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(512) },
+        ],
+      },
+    },
+    {
+      name: 'Lars Østergaard',
+      email: 'lars@example.com',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: bricklayer.id,
+        department: 'Masonry',
+        capacity: 37,
+        languages: 'da',
+        lastAssignedAt: daysFromNow(-6),
+        assignmentCount: 33,
+        education: 'Skilled Trade Certificate, Bricklayer',
+        school: 'EUC Nord',
+        thesis: 'Final apprenticeship project: bathroom renovation with full wet-room membrane system',
+        bio: 'Third-generation bricklayer. Repoints a hundred-year-old facade so the repair disappears into it.',
+        skills: [
+          { slug: 'masonry-bricklaying', level: 5, verified: true, years: 14 },
+          { slug: 'masonry-repointing', level: 4, verified: true, years: 12 },
+          { slug: 'rendering-plastering', level: 4, verified: true, years: 12 },
+          { slug: 'tile-setting', level: 4, verified: true, years: 10 },
+          { slug: 'wet-room-membrane-cert', level: 5, verified: true },
+          { slug: 'hot-work-certificate', level: 5, verified: true, expiresAt: daysFromNow(610) },
+          { slug: 'scaffold-erection-cert', level: 5, verified: true },
+        ],
+      },
+    },
+    {
+      name: 'Nadia Petersen',
+      email: 'nadia@example.com',
+      phone: '+4520100021',
+      role: 'COWORKER',
+      marketing: true,
+      operational: true,
+      coworker: {
+        positionId: carpenter.id,
+        department: 'Carpentry',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-3),
+        assignmentCount: 26,
+        education: 'Skilled Trade Certificate, Carpenter',
+        school: 'Roskilde Tekniske Skole',
+        thesis: 'Final apprenticeship project: roof replacement with integrated skylights on a preservation-listed house',
+        bio: 'Frames a roof by eye and finishes it by the millimetre. Takes the jobs where the house is older than the drawings.',
+        skills: [
+          { slug: 'timber-framing', level: 5, verified: true, years: 11 },
+          { slug: 'roof-construction', level: 4, verified: true, years: 9 },
+          { slug: 'window-door-installation', level: 4, verified: true, years: 9 },
+          { slug: 'drywall-partitioning', level: 4, verified: true, years: 8 },
+          { slug: 'floor-laying', level: 3, years: 5 },
+          { slug: 'hot-work-certificate', level: 5, verified: true, expiresAt: daysFromNow(420) },
+          { slug: 'asbestos-roofing-cert', level: 5, verified: true },
+        ],
+      },
+    },
+    {
+      name: 'Oliver Brandt',
+      email: 'oliver@example.com',
+      phone: '+4520100022',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: plumberSewer.id,
+        department: 'Plumbing & Sewer',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-2),
+        assignmentCount: 29,
+        education: 'Skilled Trade Certificate, Plumber (VVS-energiuddannelsen)',
+        school: 'NEXT Uddannelse København',
+        thesis: 'Final apprenticeship project: district-heating conversion of a two-family house',
+        bio: 'Finds the leak the building has been hiding for years. Carries the sewer authorisation the whole department leans on.',
+        skills: [
+          { slug: 'sanitary-installation', level: 5, verified: true, years: 12 },
+          { slug: 'heating-system-service', level: 4, verified: true, years: 9 },
+          { slug: 'drain-jetting', level: 4, verified: true, years: 7 },
+          { slug: 'drain-cctv-survey', level: 3, years: 4 },
+          { slug: 'vvs-authorisation', level: 5, verified: true },
+          { slug: 'kloakmester-authorisation', level: 5, verified: true },
+          { slug: 'gas-a-certificate', level: 5, verified: true, expiresAt: daysFromNow(880) },
+        ],
+      },
+    },
+    {
+      name: 'Ida Kjeldsen',
+      email: 'ida@example.com',
+      role: 'COWORKER',
+      marketing: true,
+      operational: true,
+      coworker: {
+        positionId: painter.id,
+        department: 'Painting',
+        capacity: 30,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-9),
+        assignmentCount: 18,
+        education: 'Skilled Trade Certificate, Painter',
+        school: 'Aarhus Tech',
+        thesis: 'Final apprenticeship project: restoration of lime-painted surfaces in a listed stairwell',
+        bio: 'The finish everyone photographs. Half her jobs come from people who saw the last one.',
+        skills: [
+          { slug: 'interior-painting', level: 5, verified: true, years: 10 },
+          { slug: 'surface-filling-skimming', level: 4, verified: true, years: 10 },
+          { slug: 'facade-painting', level: 4, verified: true, years: 8 },
+          { slug: 'wallpapering', level: 4, years: 6 },
+          { slug: 'spray-painting', level: 3, years: 3 },
+          { slug: 'epoxy-course', level: 5, verified: true },
+        ],
+      },
+    },
+    {
+      name: 'Emil Vestergaard',
+      email: 'emil@example.com',
+      phone: '+4520100023',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: reliningTech.id,
+        department: 'Pipe Relining',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-5),
+        assignmentCount: 15,
+        education: 'Skilled Trade Certificate, Structural and Civil Works (struktør)',
+        school: 'Learnmark Horsens',
+        thesis: 'Final apprenticeship project: no-dig renovation of a collapsed clay sewer under a working bakery',
+        bio: 'Renovates the pipe without touching the garden above it. Reads a CCTV survey the way others read the sports page.',
+        skills: [
+          { slug: 'cipp-liner-installation', level: 4, verified: true, years: 6 },
+          { slug: 'point-liner-repair', level: 4, verified: true, years: 6 },
+          { slug: 'pre-lining-jetting', level: 4, verified: true, years: 7 },
+          { slug: 'robotic-cutter-operation', level: 3, years: 4 },
+          { slug: 'drain-cctv-survey', level: 4, verified: true, years: 6 },
+          { slug: 'relining-tv-inspection-cert', level: 5, verified: true, expiresAt: daysFromNow(295) },
+          { slug: 'confined-space-training', level: 5, verified: true },
+          { slug: 'epoxy-course', level: 5, verified: true },
+        ],
+      },
+    },
   ];
 
   const created: Record<string, { userId: string; coworkerId?: string }> = {};
@@ -735,6 +1079,84 @@ async function main() {
     },
     update: {},
   });
+
+  // ---- A folder per building trade ---------------------------------------
+  // Each is an intake for one kind of work, described in its own words, with
+  // the trade's position as the default gate.
+
+  const tradeFolders: {
+    slug: string;
+    name: string;
+    description: string;
+    department: string;
+    defaultPositionId: string;
+  }[] = [
+    {
+      slug: 'electrical-jobs',
+      name: 'Electrical jobs',
+      description:
+        'Planned electrical work: installations, upgrades, safety checks and charging equipment. Unplanned callouts go in the callout folder instead.',
+      department: 'Electrical',
+      defaultPositionId: electrician.id,
+    },
+    {
+      slug: 'masonry-jobs',
+      name: 'Masonry jobs',
+      description:
+        'Incoming masonry work: brickwork, facade and joint repairs, rendering, tiling and full bathroom renovations.',
+      department: 'Masonry',
+      defaultPositionId: bricklayer.id,
+    },
+    {
+      slug: 'carpentry-jobs',
+      name: 'Carpentry jobs',
+      description:
+        'Incoming carpentry work: roofing, window and door replacement, drywall, floors, decks and general timber construction and repair.',
+      department: 'Carpentry',
+      defaultPositionId: carpenter.id,
+    },
+    {
+      slug: 'plumbing-sewer-jobs',
+      name: 'Plumbing & sewer jobs',
+      description:
+        'Incoming plumbing, heating and sewer work: leaks, sanitary and heating installations, blocked drains, jetting, CCTV surveys and sewer repairs.',
+      department: 'Plumbing & Sewer',
+      defaultPositionId: plumberSewer.id,
+    },
+    {
+      slug: 'painting-jobs',
+      name: 'Painting jobs',
+      description:
+        'Incoming painting work: interior and exterior painting, surface preparation, wallpapering and coating of wood and metal.',
+      department: 'Painting',
+      defaultPositionId: painter.id,
+    },
+    {
+      slug: 'relining-jobs',
+      name: 'Relining jobs',
+      description:
+        'No-dig sewer renovation: pre-lining cleaning, CIPP and point liners, robotic reopening and the TV inspection that documents the result.',
+      department: 'Pipe Relining',
+      defaultPositionId: reliningTech.id,
+    },
+  ];
+
+  for (const folder of tradeFolders) {
+    await prisma.taskFolder.upsert({
+      where: { slug: folder.slug },
+      create: {
+        ...folder,
+        ownerId: head,
+        routingMode: 'AUTO_ASSIGN',
+        tieBreak: 'BALANCED_LOAD',
+        ambiguityPolicy: 'STRICT',
+        tieEpsilon: 0.02,
+        minimumScore: 0.5,
+      },
+      update: {},
+    });
+  }
+
 
   await prisma.counter.upsert({
     where: { name: 'task' },

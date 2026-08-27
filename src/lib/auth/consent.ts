@@ -72,9 +72,13 @@ const EMPTY_STATE: ConsentState = Object.fromEntries(
  * version — an acceptance of an older version does not count as current.
  */
 export async function getConsentState(userId: string): Promise<ConsentState> {
+  // `distinct` keeps only the newest row per type. The table is append-only
+  // and grows with every decision ever made, so reading it whole makes each
+  // settings save slower for as long as the account exists.
   const rows = await prisma.consent.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
+    distinct: ['type'],
   });
 
   const state: ConsentState = { ...EMPTY_STATE };

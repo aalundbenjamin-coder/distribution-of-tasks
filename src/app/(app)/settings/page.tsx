@@ -200,6 +200,7 @@ export default async function SettingsPage() {
             </div>
 
             {!user.phone && (
+              <div id="link-phone" style={{ scrollMarginTop: 80 }}>
               <PhoneLinkForm
                 labels={{
                   phoneNumber: t.settings.phoneNumber,
@@ -213,6 +214,7 @@ export default async function SettingsPage() {
                   devBody: t.auth.devModeBody,
                 }}
               />
+              </div>
             )}
           </Card>
 

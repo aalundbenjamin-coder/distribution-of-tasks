@@ -4,6 +4,7 @@ import { requireDistributor } from '@/lib/server/permissions';
 import TaskForm from '@/components/TaskForm';
 import { PageHeader } from '@/components/ui';
 import { getTranslations } from '@/lib/i18n';
+import { TASK_SUBJECTS } from '@/lib/domain/task-subjects';
 
 export const metadata: Metadata = { title: 'New task' };
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ export default async function NewTaskPage({
   const [folders, positions, skills] = await Promise.all([
     prisma.taskFolder.findMany({
       where: { archivedAt: null },
-      include: { defaultPosition: { select: { title: true } } },
+      include: { defaultPosition: { select: { title: true, slug: true } } },
       orderBy: { name: 'asc' },
     }),
     prisma.position.findMany({ where: { archivedAt: null }, orderBy: { title: 'asc' } }),
@@ -42,6 +43,7 @@ export default async function NewTaskPage({
           department: f.department,
           routingMode: f.routingMode,
           defaultPositionTitle: f.defaultPosition?.title ?? null,
+          subjects: f.defaultPosition ? [...(TASK_SUBJECTS[f.defaultPosition.slug] ?? [])] : [],
         }))}
         positions={positions.map((p) => ({ id: p.id, title: p.title, department: p.department }))}
         skills={skills.map((s) => ({

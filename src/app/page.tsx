@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getTranslations } from '@/lib/i18n';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -15,7 +14,10 @@ import {
 } from '@/components/icons';
 
 export default async function LandingPage() {
-  if (await getCurrentUser()) redirect('/dashboard');
+  // Signed-in readers see the same welcome, not a bounce to the dashboard:
+  // the logo deliberately leads here, and a link that navigates somewhere
+  // other than where it says it goes reads as broken.
+  const user = await getCurrentUser();
   const { locale, t } = await getTranslations();
 
   return (
@@ -30,8 +32,14 @@ export default async function LandingPage() {
           </Link>
           <div style={{ flex: 1 }} />
           <LanguageSwitcher current={locale} compact />
-          <Link href="/login" className="btn btn-sm btn-ghost">{t.landing.ctaSignIn}</Link>
-          <Link href="/signup" className="btn btn-sm btn-primary">{t.landing.ctaCreate}</Link>
+          {user ? (
+            <Link href="/dashboard" className="btn btn-sm btn-primary">{t.landing.ctaDashboard}</Link>
+          ) : (
+            <>
+              <Link href="/login" className="btn btn-sm btn-ghost">{t.landing.ctaSignIn}</Link>
+              <Link href="/signup" className="btn btn-sm btn-primary">{t.landing.ctaCreate}</Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -61,14 +69,24 @@ export default async function LandingPage() {
           </p>
 
           <div className="row" style={{ gap: 12, justifyContent: 'center', marginTop: 30, flexWrap: 'wrap' }}>
-            <Link href="/signup" className="btn btn-primary btn-lg">
-              {t.landing.ctaCreate} <ArrowRightIcon size={16} />
-            </Link>
-            <Link href="/login" className="btn btn-lg">{t.landing.ctaSignIn}</Link>
+            {user ? (
+              <Link href="/dashboard" className="btn btn-primary btn-lg">
+                {t.landing.ctaDashboard} <ArrowRightIcon size={16} />
+              </Link>
+            ) : (
+              <>
+                <Link href="/signup" className="btn btn-primary btn-lg">
+                  {t.landing.ctaCreate} <ArrowRightIcon size={16} />
+                </Link>
+                <Link href="/login" className="btn btn-lg">{t.landing.ctaSignIn}</Link>
+              </>
+            )}
           </div>
-          <p className="tiny subtle" style={{ marginTop: 14 }}>
-            {t.landing.ctaNote}
-          </p>
+          {!user && (
+            <p className="tiny subtle" style={{ marginTop: 14 }}>
+              {t.landing.ctaNote}
+            </p>
+          )}
         </section>
 
         {/* The flow -------------------------------------------------------- */}

@@ -100,3 +100,60 @@ describe('the task list can be read without ambiguity', () => {
     }
   });
 });
+
+describe('every trade folder can actually receive work', () => {
+  // A folder whose position nobody holds demos as "no qualified coworker",
+  // which reads as a broken product in front of an audience. For each trade
+  // folder, a probe task gated on the folder's default position and its
+  // mandatory baseline must find at least one eligible person.
+  const TRADE_FOLDERS = [
+    'electrical-jobs',
+    'masonry-jobs',
+    'carpentry-jobs',
+    'plumbing-sewer-jobs',
+    'painting-jobs',
+    'relining-jobs',
+  ];
+
+  it.each(TRADE_FOLDERS)('%s has someone the engine will accept', async (slug) => {
+    const { previewMatch } = await import('@/lib/server/distribution');
+    const folder = await db.taskFolder.findUnique({ where: { slug } });
+    expect(folder, `folder ${slug} is missing`).not.toBeNull();
+    expect(folder!.defaultPositionId, `${slug} has no default position`).not.toBeNull();
+
+    const position = await db.position.findUnique({
+      where: { id: folder!.defaultPositionId! },
+      include: { requirements: { where: { necessity: 'MANDATORY' } } },
+    });
+    const head = await db.user.findFirst({ where: { role: 'HEAD_OF_DISTRIBUTION' } });
+
+    const probe = await db.task.create({
+      data: {
+        reference: `TSK-PROBE-${slug}`,
+        title: `Probe: ${slug}`,
+        folderId: folder!.id,
+        createdById: head!.id,
+        status: 'QUEUED',
+        queuedAt: new Date(),
+        estimatedHours: 4,
+        requiredPositionId: position!.id,
+        requirements: {
+          create: position!.requirements.map((r) => ({
+            skillId: r.skillId,
+            minLevel: r.minLevel,
+            necessity: 'MANDATORY',
+            weight: 3,
+          })),
+        },
+      },
+    });
+
+    try {
+      const preview = await previewMatch(probe.id);
+      expect(preview!.result.eligibleCount, `${slug}: nobody qualifies`).toBeGreaterThanOrEqual(1);
+      expect(preview!.result.selected?.fullName).toBeTruthy();
+    } finally {
+      await db.task.delete({ where: { id: probe.id } });
+    }
+  });
+});

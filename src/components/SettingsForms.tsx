@@ -84,7 +84,7 @@ export function ConsentForm({
             title={t.settings.smsWhenWork}
             description={
               !hasPhone
-                ? t.settings.noPhoneOnAccount
+                ? <NoPhoneYet t={t} />
                 : !phoneVerified
                   ? t.settings.phoneUnverified
                   : t.settings.sameBySms
@@ -111,7 +111,7 @@ export function ConsentForm({
             checked={values.MARKETING_SMS}
             disabled={!hasPhone}
             title={t.settings.smsFeatures}
-            description={t.settings.featuresSmsDescription}
+            description={!hasPhone ? <NoPhoneYet t={t} /> : t.settings.featuresSmsDescription}
           />
         </div>
       </fieldset>
@@ -120,6 +120,18 @@ export function ConsentForm({
         {pending ? <><span className="spin" /> {t.common.saving}</> : t.settings.saveChoices}
       </button>
     </form>
+  );
+}
+
+/** The disabled state names its cure and links straight to it. */
+function NoPhoneYet({ t }: { t: Dictionary }) {
+  return (
+    <>
+      {t.settings.noPhoneOnAccount}{' '}
+      <a href="#link-phone" style={{ color: 'var(--accent)', fontWeight: 560 }}>
+        {t.settings.addPhoneLink}
+      </a>
+    </>
   );
 }
 
@@ -134,7 +146,7 @@ function ConsentSwitch({
   checked: boolean;
   disabled?: boolean;
   title: string;
-  description: string;
+  description: React.ReactNode;
 }) {
   return (
     <label className="checkline" style={disabled ? { opacity: 0.6 } : undefined}>

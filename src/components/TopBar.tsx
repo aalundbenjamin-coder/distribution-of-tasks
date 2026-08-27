@@ -39,7 +39,7 @@ export default function TopBar({
   return (
     <header className="topbar">
       <div className="shell" style={{ display: 'flex', alignItems: 'center', gap: 14, height: 58 }}>
-        <Link href="/dashboard" className="row" style={{ gap: 9, flex: 'none' }}>
+        <Link href="/" className="row" style={{ gap: 9, flex: 'none' }}>
           <LogoMark />
           <span style={{ fontWeight: 680, letterSpacing: '-0.02em', fontSize: 15 }}>
             {labels.appName}
