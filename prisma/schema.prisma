@@ -261,6 +261,18 @@ model Coworker {
   /// Free-text specification kept alongside the structured capabilities.
   notes          String?
 
+  /// Profile. What a person studied and wrote about is often the clearest
+  /// signal of what they are good at, and it is the part of a colleague that a
+  /// skill matrix cannot express, so it is kept as text next to the levels
+  /// rather than folded into them. None of it is read by the matching engine:
+  /// it explains a ranking to a person, it never decides one.
+  education      String?
+  school         String?
+  thesis         String?
+  bio            String?
+  /// Which illustrated portrait to draw. Unset falls back to the initials.
+  portrait       String?
+
   /// Fairness bookkeeping: used as a deterministic tie-breaker so that two
   /// equally qualified coworkers take turns instead of one always winning.
   lastAssignedAt DateTime?

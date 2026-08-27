@@ -98,6 +98,8 @@ async function main() {
     { slug: 'welding-mig', name: 'MIG welding', category: 'Mechanical' },
     { slug: 'customer-handover', name: 'Customer handover', category: 'Service' },
     { slug: 'report-writing', name: 'Technical report writing', category: 'Service' },
+    { slug: 'safety-systems', name: 'Safety systems', category: 'Automation' },
+    { slug: 'data-analysis', name: 'Data analysis', category: 'Automation' },
   ] as const;
 
   const certSpecs = [
@@ -189,9 +191,15 @@ async function main() {
       committedNote?: string;
       languages: string;
       availability?: string;
+      availableFrom?: Date;
       lastAssignedAt?: Date;
       assignmentCount?: number;
       notes?: string;
+      education?: string;
+      school?: string;
+      thesis?: string;
+      bio?: string;
+      portrait?: string;
       skills: {
         slug: string;
         level: number;
@@ -234,6 +242,10 @@ async function main() {
         lastAssignedAt: daysFromNow(-2),
         assignmentCount: 14,
         notes: 'Prefers the northern region. Van fitted for cable work.',
+        education: 'BEng Electrical Engineering',
+        school: 'Aarhus Universitet',
+        thesis: 'Cable fault location in rural distribution networks',
+        bio: 'Works the northern region out of a van fitted for cable work. Unhurried on a live site, which is most of why she is trusted on them.',
         skills: [
           { slug: 'electrical-fault-finding', level: 4, verified: true, years: 6 },
           { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(400) },
@@ -257,6 +269,10 @@ async function main() {
         // which is exactly what the tie-break is there to use.
         lastAssignedAt: daysFromNow(-21),
         assignmentCount: 9,
+        education: 'BEng Electrical Engineering',
+        school: 'Aalborg Universitet',
+        thesis: 'Selectivity in low-voltage protection coordination',
+        bio: 'Methodical to a fault. Leaves the kind of notes the next technician is relieved to find.',
         skills: [
           { slug: 'electrical-fault-finding', level: 4, verified: true, years: 6 },
           { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(400) },
@@ -277,6 +293,10 @@ async function main() {
         department: 'Field Service',
         capacity: 37,
         languages: 'da',
+        education: 'AP Degree in Automation Engineering',
+        school: 'Erhvervsakademi Aarhus',
+        thesis: 'Commissioning checklists that survive contact with a live site',
+        bio: 'Came up through commissioning and still thinks like a commissioner: nothing is finished until it has been proven in front of someone.',
         skills: [
           { slug: 'electrical-fault-finding', level: 3, years: 2 },
           { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(200) },
@@ -297,6 +317,10 @@ async function main() {
         capacity: 37,
         languages: 'da,en,de',
         notes: 'Permit renewal booked — chase the training provider.',
+        education: 'MSc Electrical Power Engineering',
+        school: 'Danmarks Tekniske Universitet (DTU)',
+        thesis: 'Transient signatures of intermittent earth faults',
+        bio: 'The strongest diagnostician on the team, and currently the one the engine keeps having to pass over: his permit lapsed in August.',
         skills: [
           { slug: 'electrical-fault-finding', level: 5, verified: true, years: 11 },
           { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(-12) },
@@ -316,6 +340,10 @@ async function main() {
         department: 'Automation',
         capacity: 37,
         languages: 'en,tr',
+        education: 'MSc Control Engineering',
+        school: 'Danmarks Tekniske Universitet (DTU)',
+        thesis: 'Model-based tuning for high-speed packaging lines',
+        bio: 'Tunes a line until it stops arguing with itself. Reads three PLC dialects without needing the manual.',
         skills: [
           { slug: 'plc-programming', level: 5, verified: true, years: 9 },
           { slug: 'report-writing', level: 4, verified: true, years: 7 },
@@ -334,6 +362,10 @@ async function main() {
         department: 'Automation',
         capacity: 30,
         languages: 'da,en',
+        education: 'BEng Automation Engineering',
+        school: 'Københavns Erhvervsakademi (KEA)',
+        thesis: 'Retrofitting legacy conveyors with modern safety controllers',
+        bio: 'Happiest inside a panel that has not been opened since 1998, and the only one who volunteers for those.',
         skills: [
           { slug: 'plc-programming', level: 4, years: 3 },
           { slug: 'report-writing', level: 3, years: 3 },
@@ -351,6 +383,10 @@ async function main() {
         department: 'Workshop',
         capacity: 37,
         languages: 'da',
+        education: 'Skilled Trade Certificate, Industrial Technician',
+        school: 'TEC — Technical Education Copenhagen',
+        thesis: 'Jig design for repeatable weld quality on thin-wall sections',
+        bio: 'Builds the jig before the part. Everything that leaves her bench comes out the same the second time.',
         skills: [
           { slug: 'hydraulics', level: 4, verified: true, years: 8 },
           { slug: 'welding-mig', level: 4, verified: true, years: 8 },
@@ -372,10 +408,163 @@ async function main() {
         capacity: 37,
         languages: 'da,en',
         availability: 'ON_LEAVE',
+        education: 'Skilled Trade Certificate, Blacksmith and Machining',
+        school: 'Syddansk Erhvervsskole',
+        thesis: 'Wear patterns in high-cycle hydraulic seals',
+        bio: 'Thirty years on hydraulics and still the first person anyone asks. On leave until September.',
         skills: [
           { slug: 'hydraulics', level: 5, verified: true, years: 15 },
           { slug: 'welding-mig', level: 5, verified: true, years: 15 },
           { slug: 'forklift-licence', level: 5, verified: true, expiresAt: daysFromNow(300) },
+        ],
+      },
+    },
+
+    // ---- The five carried over from the presentation ----------------------
+    // Same people, same portraits, same capabilities as the projected slides,
+    // so the deck and the running system tell one story rather than two.
+    {
+      name: 'Sofie Lindgren',
+      email: 'sofie@example.com',
+      phone: '+4520100010',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: seniorTech.id,
+        department: 'Field Service',
+        capacity: 37,
+        languages: 'da,en,sv',
+        lastAssignedAt: daysFromNow(-15),
+        assignmentCount: 31,
+        portrait: 'sofie',
+        education: 'MSc Electrical Power Engineering',
+        school: 'Danmarks Tekniske Universitet (DTU)',
+        thesis: 'Arc-fault signatures in low-voltage distribution boards',
+        bio: 'Reads a fault from its transient signature before opening the panel. The one the team calls when a trip has no obvious cause.',
+        notes: 'Holds the high-voltage authorisation for the northern substations.',
+        skills: [
+          { slug: 'electrical-fault-finding', level: 5, verified: true, years: 11 },
+          { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(307) },
+          { slug: 'hv-switching', level: 4, verified: true, years: 7 },
+          { slug: 'customer-handover', level: 4, verified: true, years: 9 },
+          { slug: 'report-writing', level: 3, years: 5 },
+        ],
+      },
+    },
+    {
+      name: 'Freja Nilsen',
+      email: 'freja@example.com',
+      phone: '+4520100011',
+      role: 'COWORKER',
+      marketing: true,
+      operational: true,
+      coworker: {
+        positionId: seniorTech.id,
+        department: 'Field Service',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-7),
+        assignmentCount: 24,
+        portrait: 'freja',
+        education: 'BEng Electrical Installation & Service',
+        school: 'Københavns Erhvervsakademi (KEA)',
+        thesis: 'Reducing handover defects through structured customer sign-off',
+        bio: 'Turns a finished repair into a signed, documented handover. Customers ask for her by name.',
+        notes: 'Permit renewal booked; until it clears she cannot be sent to live work.',
+        skills: [
+          { slug: 'customer-handover', level: 5, verified: true, years: 8 },
+          { slug: 'electrical-fault-finding', level: 4, verified: true, years: 6 },
+          { slug: 'report-writing', level: 4, years: 6 },
+          // Lapsed three weeks ago: the engine has to keep her off live work.
+          { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(-22) },
+        ],
+      },
+    },
+    {
+      name: 'Mikkel Dahl',
+      email: 'mikkel@example.com',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: automationEngineer.id,
+        department: 'Automation',
+        capacity: 37,
+        languages: 'da,en',
+        lastAssignedAt: daysFromNow(-10),
+        assignmentCount: 19,
+        portrait: 'mikkel',
+        education: 'BEng Automation & Control Engineering',
+        school: 'Aarhus Universitet',
+        thesis: 'Safety-rated PLC architectures for collaborative robot cells',
+        bio: 'Builds the control logic that makes a machine safe to stand next to, and proves it on paper afterwards.',
+        notes: 'Signs off safety circuits for the whole Automation department.',
+        skills: [
+          { slug: 'plc-programming', level: 5, verified: true, years: 9 },
+          { slug: 'safety-systems', level: 4, verified: true, years: 6 },
+          { slug: 'report-writing', level: 4, verified: true, years: 7 },
+          { slug: 'data-analysis', level: 2, years: 2 },
+          { slug: 'electrical-fault-finding', level: 2, years: 3 },
+          { slug: 'lv-permit', level: 5, verified: true, expiresAt: daysFromNow(186) },
+        ],
+      },
+    },
+    {
+      name: 'Jonas Berg',
+      email: 'jonas.berg@example.com',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: automationEngineer.id,
+        department: 'Automation',
+        // Four days a week by agreement, which is why the engine will not fill
+        // him to the same hours as the rest of the team.
+        capacity: 30,
+        languages: 'da,en,no',
+        lastAssignedAt: daysFromNow(-12),
+        assignmentCount: 16,
+        portrait: 'jonas',
+        education: 'MSc Data Engineering',
+        school: 'IT-Universitetet i København (ITU)',
+        thesis: 'Predictive maintenance from vibration telemetry',
+        bio: 'Finds the failure three weeks before it happens, then writes it up so someone can act on it.',
+        notes: 'Owns the reliability reporting for every site.',
+        skills: [
+          { slug: 'data-analysis', level: 5, verified: true, years: 8 },
+          { slug: 'report-writing', level: 5, verified: true, years: 8 },
+          { slug: 'plc-programming', level: 3, years: 4 },
+        ],
+      },
+    },
+    {
+      name: 'Amira Haddad',
+      email: 'amira@example.com',
+      phone: '+4520100012',
+      role: 'COWORKER',
+      marketing: false,
+      operational: true,
+      coworker: {
+        positionId: workshopTech.id,
+        department: 'Workshop',
+        capacity: 37,
+        languages: 'da,en,ar',
+        availability: 'ON_LEAVE',
+        availableFrom: daysFromNow(18),
+        lastAssignedAt: daysFromNow(-20),
+        assignmentCount: 27,
+        portrait: 'amira',
+        education: 'MSc Mechanical Engineering',
+        school: 'Lunds Universitet',
+        thesis: 'Fatigue life prediction in high-pressure hydraulic cylinders',
+        bio: 'Rebuilds what everyone else writes off. Knows exactly how many cycles a cylinder has left in it.',
+        notes: 'On leave until mid-September. Back on the bench from the 14th.',
+        skills: [
+          { slug: 'hydraulics', level: 5, verified: true, years: 12 },
+          { slug: 'welding-mig', level: 4, verified: true, years: 10 },
+          { slug: 'forklift-licence', level: 5, verified: true, expiresAt: daysFromNow(431) },
+          { slug: 'report-writing', level: 3, years: 4 },
         ],
       },
     },
@@ -422,9 +611,15 @@ async function main() {
           weeklyCapacityHours: spec.capacity,
           languages: spec.languages,
           availability: spec.availability ?? 'ACTIVE',
+          availableFrom: spec.availableFrom ?? null,
           lastAssignedAt: spec.lastAssignedAt ?? null,
           assignmentCount: spec.assignmentCount ?? 0,
           notes: spec.notes ?? null,
+          education: spec.education ?? null,
+          school: spec.school ?? null,
+          thesis: spec.thesis ?? null,
+          bio: spec.bio ?? null,
+          portrait: spec.portrait ?? null,
           skills: {
             create: spec.skills.map((s) => ({
               skillId: skills[s.slug]!.id,
@@ -495,9 +690,83 @@ async function main() {
     },
   });
 
-  await prisma.counter.create({ data: { name: 'task', value: 1000 } });
+  await prisma.counter.create({ data: { name: 'task', value: 1921 } });
 
   // --- Tasks ---------------------------------------------------------------
+
+  // --- Work already done ----------------------------------------------------
+  //
+  // A finished task keeps its assignment rather than being cleared away, which
+  // is what lets a coworker's page answer "what has this person actually done"
+  // long after the fact. These are the same jobs, references and dates the
+  // presentation credits them with.
+
+  const historySpecs: {
+    who: string;
+    reference: string;
+    title: string;
+    folderId: string;
+    daysAgo: number;
+    hours: number;
+    skill: string;
+    score: number;
+  }[] = [
+    { who: 'Freja Nilsen', reference: 'TSK-1921', title: 'Customer handover and acceptance test, Køge line 2', folderId: callouts.id, daysAgo: 7, hours: 5, skill: 'customer-handover', score: 0.94 },
+    { who: 'Mikkel Dahl', reference: 'TSK-1915', title: 'Commission palletiser cell, Vejle', folderId: commissioning.id, daysAgo: 10, hours: 16, skill: 'plc-programming', score: 0.97 },
+    { who: 'Jonas Berg', reference: 'TSK-1912', title: 'Downtime analysis, Q2', folderId: commissioning.id, daysAgo: 12, hours: 12, skill: 'data-analysis', score: 0.96 },
+    { who: 'Sofie Lindgren', reference: 'TSK-1908', title: 'Replace damaged distribution board, Aalborg depot', folderId: callouts.id, daysAgo: 15, hours: 9, skill: 'electrical-fault-finding', score: 0.95 },
+    { who: 'Elif Yılmaz', reference: 'TSK-1906', title: 'Line 2 retune after motor swap', folderId: commissioning.id, daysAgo: 16, hours: 7, skill: 'plc-programming', score: 0.91 },
+    { who: 'Mikkel Dahl', reference: 'TSK-1902', title: 'Safety circuit proving after guard rebuild', folderId: commissioning.id, daysAgo: 18, hours: 6, skill: 'safety-systems', score: 0.93 },
+    { who: 'Amira Haddad', reference: 'TSK-1898', title: 'Rebuild tipper ram assembly', folderId: workshop.id, daysAgo: 20, hours: 14, skill: 'hydraulics', score: 0.98 },
+    { who: 'Anna Holm', reference: 'TSK-1893', title: 'Cable fault located and repaired, Randers feeder', folderId: callouts.id, daysAgo: 19, hours: 8, skill: 'electrical-fault-finding', score: 0.89 },
+    { who: 'Freja Nilsen', reference: 'TSK-1889', title: 'Service visit, packaging hall', folderId: callouts.id, daysAgo: 22, hours: 4, skill: 'customer-handover', score: 0.90 },
+    { who: 'David Nyholm', reference: 'TSK-1885', title: 'Earth fault traced on the bottling line', folderId: callouts.id, daysAgo: 24, hours: 6, skill: 'electrical-fault-finding', score: 0.92 },
+    { who: 'Jonas Berg', reference: 'TSK-1881', title: 'Sensor data pipeline for bearing telemetry', folderId: commissioning.id, daysAgo: 25, hours: 18, skill: 'data-analysis', score: 0.95 },
+    { who: 'Sofie Lindgren', reference: 'TSK-1876', title: 'Emergency isolation after water ingress, Hillerød', folderId: callouts.id, daysAgo: 27, hours: 5, skill: 'hv-switching', score: 0.93 },
+    { who: 'Bo Lindqvist', reference: 'TSK-1872', title: 'Annual inspection, switchroom B', folderId: callouts.id, daysAgo: 29, hours: 7, skill: 'electrical-fault-finding', score: 0.88 },
+    { who: 'Mikkel Dahl', reference: 'TSK-1868', title: 'PLC migration, line 4', folderId: commissioning.id, daysAgo: 30, hours: 20, skill: 'plc-programming', score: 0.96 },
+    { who: 'Amira Haddad', reference: 'TSK-1866', title: 'Weld repair, boom section', folderId: workshop.id, daysAgo: 32, hours: 6, skill: 'welding-mig', score: 0.94 },
+    { who: 'Freja Nilsen', reference: 'TSK-1857', title: 'Fault report, conveyor drive', folderId: callouts.id, daysAgo: 36, hours: 4, skill: 'report-writing', score: 0.87 },
+    { who: 'Gitte Rask', reference: 'TSK-1852', title: 'Weld repair, chassis crossmember', folderId: workshop.id, daysAgo: 38, hours: 5, skill: 'welding-mig', score: 0.90 },
+    { who: 'Sofie Lindgren', reference: 'TSK-1844', title: 'Thermographic survey, main switchroom', folderId: callouts.id, daysAgo: 40, hours: 6, skill: 'electrical-fault-finding', score: 0.91 },
+    { who: 'Jonas Berg', reference: 'TSK-1839', title: 'Reliability baseline report, all sites', folderId: commissioning.id, daysAgo: 43, hours: 22, skill: 'report-writing', score: 0.97 },
+    { who: 'Amira Haddad', reference: 'TSK-1831', title: 'Hydraulic press overhaul', folderId: workshop.id, daysAgo: 47, hours: 16, skill: 'hydraulics', score: 0.96 },
+  ];
+
+  for (const spec of historySpecs) {
+    const coworkerId = created[spec.who]?.coworkerId;
+    if (!coworkerId) throw new Error(`History references an unknown coworker: ${spec.who}`);
+
+    const finished = daysFromNow(-spec.daysAgo);
+    await prisma.task.create({
+      data: {
+        reference: spec.reference,
+        title: spec.title,
+        folderId: spec.folderId,
+        createdById: head,
+        status: 'COMPLETED',
+        priority: 'NORMAL',
+        estimatedHours: spec.hours,
+        queuedAt: daysFromNow(-spec.daysAgo - 2),
+        completedAt: finished,
+        requirements: {
+          create: [{ skillId: skills[spec.skill]!.id, minLevel: 3, necessity: 'MANDATORY', weight: 5 }],
+        },
+        assignments: {
+          create: {
+            coworkerId,
+            method: 'AUTOMATIC',
+            assignedById: head,
+            status: 'COMPLETED',
+            scoreAtAssignment: spec.score,
+            rationale: 'Highest ranked candidate at the time of distribution.',
+            acceptedAt: daysFromNow(-spec.daysAgo - 2),
+            completedAt: finished,
+          },
+        },
+      },
+    });
+  }
 
   const taskSpecs = [
     {
@@ -538,6 +807,7 @@ async function main() {
       requirements: [
         { slug: 'plc-programming', minLevel: 4, necessity: 'MANDATORY', weight: 5 },
         { slug: 'report-writing', minLevel: 3, necessity: 'MANDATORY', weight: 3 },
+        { slug: 'safety-systems', minLevel: 3, necessity: 'PREFERRED', weight: 4 },
       ],
       languages: 'en',
     },
@@ -565,14 +835,14 @@ async function main() {
       hours: 5,
       dueInDays: 5,
       requirements: [
-        { slug: 'hv-switching', minLevel: 4, necessity: 'MANDATORY', weight: 5 },
+        { slug: 'hv-switching', minLevel: 5, necessity: 'MANDATORY', weight: 5 },
         { slug: 'lv-permit', minLevel: 5, necessity: 'MANDATORY', weight: 3 },
       ],
       languages: 'da',
     },
   ] as const;
 
-  let reference = 1000;
+  let reference = 1921;
   for (const spec of taskSpecs) {
     reference += 1;
     await prisma.task.create({

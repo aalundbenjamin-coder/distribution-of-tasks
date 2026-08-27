@@ -4,12 +4,12 @@ import { prisma } from '@/lib/db';
 import { requireDistributor } from '@/lib/server/permissions';
 import { OPEN_TASK_STATUSES } from '@/lib/domain/enums';
 import {
-  Avatar,
   Badge,
   Card,
   PageHeader,
   ScoreBar,
 } from '@/components/ui';
+import Portrait from '@/components/Portrait';
 import {
   AvailabilityBadge,
 } from '@/components/ui-labels';
@@ -132,7 +132,7 @@ export default async function CoworkersPage({
                     <tr key={coworker.id}>
                       <td>
                         <Link href={`/coworkers/${coworker.id}`} className="row" style={{ gap: 10 }}>
-                          <Avatar name={coworker.user.fullName} colour={coworker.user.avatarColor} />
+                          <Portrait seed={coworker.portrait ?? coworker.user.fullName} size={38} />
                           <span>
                             <span style={{ display: 'block', fontWeight: 600 }}>
                               {coworker.user.fullName}

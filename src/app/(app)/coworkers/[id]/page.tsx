@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { requireUser, canDistribute, canVerifySkills } from '@/lib/server/permissions';
 import { ProfileForm, RemoveSkillButton, SkillEditor } from '@/components/CoworkerEditors';
+import Portrait from '@/components/Portrait';
 import {
-  Avatar,
   Badge,
   Card,
   
@@ -97,7 +97,7 @@ export default async function CoworkerPage({ params }: { params: Promise<{ id: s
         }
         action={
           <div className="row" style={{ gap: 10 }}>
-            <Avatar name={coworker.user.fullName} colour={coworker.user.avatarColor} large />
+            <Portrait seed={coworker.portrait ?? coworker.user.fullName} size={64} />
           </div>
         }
       />
@@ -257,6 +257,29 @@ export default async function CoworkerPage({ params }: { params: Promise<{ id: s
               </div>
             )}
           </Card>
+
+          {(coworker.bio || coworker.education || coworker.thesis) && (
+            <Card title={t.coworkers.background}>
+              <div className="stack" style={{ gap: 15 }}>
+                {coworker.bio && (
+                  <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.55 }}>{coworker.bio}</p>
+                )}
+                {coworker.education && (
+                  <div>
+                    <div className="small muted">{t.coworkers.education}</div>
+                    <div style={{ fontWeight: 560 }}>{coworker.education}</div>
+                    {coworker.school && <div className="small muted">{coworker.school}</div>}
+                  </div>
+                )}
+                {coworker.thesis && (
+                  <div>
+                    <div className="small muted">{t.coworkers.thesis}</div>
+                    <div style={{ fontStyle: 'italic' }}>{coworker.thesis}</div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           {coworker.notes && (
             <Card title={t.coworkers.notes}>
