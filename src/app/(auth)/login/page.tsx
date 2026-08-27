@@ -3,20 +3,10 @@ import { redirect } from 'next/navigation';
 import SignInForm from '@/components/SignInForm';
 import { getCurrentUser } from '@/lib/auth/session';
 import { getTranslations } from '@/lib/i18n';
+import { signInErrorMessage } from '@/lib/auth/sign-in-errors';
 
 export const metadata: Metadata = { title: 'Sign in' };
 
-const ERROR_MESSAGES: Record<string, string> = {
-  google_denied: 'The Google sign-in was cancelled.',
-  google_state: 'That sign-in link had expired or did not come from here. Try again.',
-  google_code: 'Google did not return an authorisation code. Try again.',
-  google_email: 'That account has no usable e-mail address.',
-  google_account: 'We could not use that Google account to sign in.',
-  google_unconfigured:
-    'Google sign-in is not set up on this deployment yet. An administrator needs to add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. Until then, use an e-mail address or a phone number.',
-  google_exchange:
-    'Google would not complete the sign-in. If this deployment was just set up, check that the authorised redirect URI registered with Google matches this site exactly.',
-};
 
 export default async function LoginPage({
   searchParams,
@@ -43,7 +33,7 @@ export default async function LoginPage({
 
       {params.error && (
         <div className="notice notice-danger" style={{ marginBottom: 16 }} role="alert">
-          {ERROR_MESSAGES[params.error] ?? 'Something went wrong with that sign-in. Try again.'}
+          {signInErrorMessage(t, params.error)}
         </div>
       )}
 

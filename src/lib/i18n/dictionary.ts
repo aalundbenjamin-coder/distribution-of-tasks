@@ -230,6 +230,19 @@ export const en = {
     continueWithGoogle: 'Continue with Google',
     googleScopeNote: 'We ask Google only for your name, your e-mail address and whether it is verified. Your Google password never reaches this service.',
     googleSignInNote: 'Signing in with a Google account that already exists here does not ask you to accept anything again.',
+    signInErrors: {
+      denied: 'The Google sign-in was cancelled.',
+      state: 'That sign-in attempt could not be confirmed, or it took too long. Please try again.',
+      code: 'Google did not return an authorisation code. Try again.',
+      email: 'That account has no usable e-mail address.',
+      account: 'We could not use that Google account to sign in.',
+      host: 'Sign-in has to start from this page. Please try again.',
+      unconfigured:
+        'Google sign-in is not set up on this deployment yet. An administrator needs to add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. Until then, use an e-mail address or a phone number.',
+      exchange:
+        'Google would not complete the sign-in. If this deployment was just set up, check that the authorised redirect URI registered with Google matches this site exactly.',
+      generic: 'Something went wrong with that sign-in. Try again.',
+    },
     googleUnconfigured: 'No Google credentials configured on this deployment.',
     googleUnconfiguredBody: 'The button below opens a local stand-in so the whole journey — consent, account creation, the bell — can be walked through.',
     devMode: 'Development mode.',
@@ -935,6 +948,19 @@ export const da: Dictionary = {
     continueWithGoogle: 'Fortsæt med Google',
     googleScopeNote: 'Vi beder kun Google om dit navn, din e-mailadresse og om den er bekræftet. Din Google-adgangskode når aldrig frem til denne tjeneste.',
     googleSignInNote: 'Logger du ind med en Google-konto, der allerede findes her, bliver du ikke bedt om at acceptere noget igen.',
+    signInErrors: {
+      denied: 'Google-loginet blev afbrudt.',
+      state: 'Loginforsøget kunne ikke bekræftes, eller det tog for lang tid. Prøv igen.',
+      code: 'Google returnerede ingen autorisationskode. Prøv igen.',
+      email: 'Den konto har ingen brugbar e-mailadresse.',
+      account: 'Vi kunne ikke bruge den Google-konto til at logge ind.',
+      host: 'Login skal startes fra denne side. Prøv igen.',
+      unconfigured:
+        'Google-login er endnu ikke sat op på dette websted. En administrator skal tilføje GOOGLE_CLIENT_ID og GOOGLE_CLIENT_SECRET. Indtil da kan du bruge en e-mailadresse eller et telefonnummer.',
+      exchange:
+        'Google ville ikke fuldføre loginet. Hvis webstedet lige er sat op, så kontrollér, at den godkendte redirect-URI hos Google stemmer nøjagtigt overens med dette websted.',
+      generic: 'Noget gik galt med det login. Prøv igen.',
+    },
     googleUnconfigured: 'Der er ikke opsat Google-adgang på denne installation.',
     googleUnconfiguredBody: 'Knappen nedenfor åbner en lokal stedfortræder, så hele forløbet — samtykke, oprettelse af konto og klokken — kan gennemgås.',
     devMode: 'Udviklingstilstand.',

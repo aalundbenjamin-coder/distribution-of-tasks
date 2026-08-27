@@ -67,6 +67,33 @@ export function redirectUri(request: Request): string {
   return `${appOrigin(request)}/api/auth/google/callback`;
 }
 
+/**
+ * The canonical origin, when this request arrived on some other host.
+ *
+ * `APP_ORIGIN` pins the address Google returns to. A flow begun on a different
+ * host — a per-deployment Vercel URL, say — would write its state cookie on a
+ * host the callback never sees, because cookies do not cross hostnames. That
+ * has to be caught before any cookie is set, rather than surfacing afterwards
+ * as a failed state check on a request nobody forged.
+ */
+export function offCanonicalHost(request: Request): string | null {
+  const configured = process.env.APP_ORIGIN?.trim().replace(/\/+$/, '');
+  if (!configured) return null;
+
+  let canonical: URL;
+  try {
+    canonical = new URL(configured);
+  } catch {
+    return null;
+  }
+  if (!canonical.host) return null;
+
+  const forwarded = request.headers.get('x-forwarded-host') ?? request.headers.get('host');
+  const host = (forwarded ?? new URL(request.url).host).split(',')[0]!.trim().toLowerCase();
+  if (!host || host === canonical.host.toLowerCase()) return null;
+  return canonical.origin;
+}
+
 export interface PkcePair {
   verifier: string;
   challenge: string;

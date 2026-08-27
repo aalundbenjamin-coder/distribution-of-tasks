@@ -20,6 +20,7 @@ import {
   type FormState,
 } from '@/app/actions/auth';
 import type { Dictionary } from '@/lib/i18n/dictionary';
+import { signInErrorMessage } from '@/lib/auth/sign-in-errors';
 import type { Locale } from '@/lib/i18n/locale';
 
 type Method = 'email' | 'google' | 'phone';
@@ -75,9 +76,9 @@ export default function SignUpForm({
         </button>
       </div>
 
-      {initialError === 'consent' && (
+      {initialError && (
         <div className="notice notice-danger" role="alert">
-          {t.auth.consentRequired}
+          {signInErrorMessage(t, initialError)}
         </div>
       )}
 

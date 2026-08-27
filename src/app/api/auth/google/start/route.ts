@@ -6,6 +6,7 @@ import {
   createPkcePair,
   isGoogleConfigured,
   isGoogleSimulationAllowed,
+  offCanonicalHost,
 } from '@/lib/auth/google';
 import { stashGoogleConsent } from '@/app/actions/auth';
 import type { ConsentDecision } from '@/lib/auth/consent';
@@ -42,6 +43,19 @@ export async function POST(request: Request) {
   ];
 
   const mode = formData.get('mode') === 'signup' ? 'signup' : 'login';
+
+  // Whatever cookies this route sets have to be readable by the callback. If
+  // the request did not arrive on the host Google will return to, they will not
+  // be, so hand the browser to the canonical host and let it start again there
+  // rather than sending it on a round trip that cannot succeed.
+  const canonical = offCanonicalHost(request);
+  if (canonical) {
+    const path =
+      mode === 'signup'
+        ? '/signup?method=google&error=google_host'
+        : '/login?error=google_host';
+    return NextResponse.redirect(new URL(path, canonical), { status: 303 });
+  }
 
   // Signing up requires the two mandatory consents up front; signing in to an
   // account that already exists does not re-ask.
