@@ -17,7 +17,7 @@ import {
   AvailabilityBadge,
   LocalDate,
   RelativeTime,
-  TaskStatusBadge,
+  AssignmentStatusBadge,
 } from '@/components/ui-labels';
 import { AlertIcon, ShieldIcon } from '@/components/icons';
 import { OPEN_TASK_STATUSES } from '@/lib/domain/enums';
@@ -245,7 +245,7 @@ export default async function CoworkerPage({ params }: { params: Promise<{ id: s
                             {assignment.method !== 'AUTOMATIC' && ` · ${t.coworkers.assignedByHand}`}
                           </div>
                         </td>
-                        <td><TaskStatusBadge status={assignment.task.status} /></td>
+                        <td><AssignmentStatusBadge status={assignment.status} /></td>
                         <td className="small muted num">
                           {Math.round(assignment.scoreAtAssignment * 100)}%
                         </td>

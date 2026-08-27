@@ -14,6 +14,7 @@ import { Badge } from './ui';
 import { getTranslations } from '@/lib/i18n';
 import { formatDateIn, formatDateTimeIn } from '@/lib/i18n/locale';
 import type {
+  AssignmentStatus,
   Availability,
   MatchOutcome,
   TaskPriority,
@@ -40,6 +41,30 @@ export async function TaskStatusBadge({ status }: { status: string }) {
   return (
     <Badge tone={TASK_STATUS_TONE[key]} dot>
       {t.taskStatus[key]}
+    </Badge>
+  );
+}
+
+const ASSIGNMENT_STATUS_TONE: Record<AssignmentStatus, Tone> = {
+  PROPOSED: 'accent',
+  ACTIVE: 'ok',
+  COMPLETED: 'neutral',
+  REVOKED: 'neutral',
+  DECLINED: 'warn',
+};
+
+/**
+ * The state of one person's hold on a task, which is not the state of the task.
+ * A withdrawn assignment sits in the same history as a live one, and showing
+ * the task's status against both would say a person still holds work that was
+ * taken off them.
+ */
+export async function AssignmentStatusBadge({ status }: { status: string }) {
+  const { t } = await getTranslations();
+  const key = (status in t.assignmentStatus ? status : 'PROPOSED') as AssignmentStatus;
+  return (
+    <Badge tone={ASSIGNMENT_STATUS_TONE[key]} dot>
+      {t.assignmentStatus[key]}
     </Badge>
   );
 }

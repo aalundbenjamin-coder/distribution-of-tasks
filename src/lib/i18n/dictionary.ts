@@ -100,6 +100,14 @@ export const en = {
     BLOCKED_NO_MATCH: 'No qualified coworker',
   },
 
+  assignmentStatus: {
+    PROPOSED: 'Proposed',
+    ACTIVE: 'Assigned',
+    COMPLETED: 'Completed',
+    REVOKED: 'Withdrawn',
+    DECLINED: 'Declined',
+  },
+
   priority: {
     LOW: 'Low',
     NORMAL: 'Normal',
@@ -821,6 +829,14 @@ export const da: Dictionary = {
     COMPLETED: 'Fuldført',
     CANCELLED: 'Annulleret',
     BLOCKED_NO_MATCH: 'Ingen kvalificeret medarbejder',
+  },
+
+  assignmentStatus: {
+    PROPOSED: 'Foreslået',
+    ACTIVE: 'Tildelt',
+    COMPLETED: 'Fuldført',
+    REVOKED: 'Trukket tilbage',
+    DECLINED: 'Afvist',
   },
 
   priority: {
